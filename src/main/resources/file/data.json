@@ -1,0 +1,42 @@
+[
+	{
+		"password": "Cong12345",
+		"permissions": [
+			{
+				"actname": "ACCOUNT_CREATE",
+				"id": 1
+			}
+		],
+		"role": {
+			"id": 1,
+			"rolename": "ROLE_ADMIN"
+		},
+		"userinforDto": {
+			"address": "da nang",
+			"age": 11,
+			"email": "admin1@gmail.com",
+			"name": "lpc"
+		},
+		"username": "admin1"
+	},
+	{
+		"password": "Cong12345",
+		"permissions": [
+			{
+				"actname": "ACCOUNT_CREATE",
+				"id": 1
+			}
+		],
+		"role": {
+			"id": 1,
+			"rolename": "ROLE_ADMIN"
+		},
+		"userinforDto": {
+			"address": "da nang",
+			"age": 11,
+			"email": "admin2@gmail.com",
+			"name": "lpc"
+		},
+		"username": "admin2"
+	}
+]
