@@ -3,6 +3,7 @@ package com.example.Warehouse.config;
 
 
 public class AuthToken {
+	//â
 	private String accessToken;
     private String tokenType = "Bearer";
 
