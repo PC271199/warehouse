@@ -31,4 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
-*.yml
+*-dev.yml
+application.yml
+*-prod.yml
