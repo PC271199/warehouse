@@ -1,14 +1,11 @@
 package com.example.Warehouse.dtos;
 
+
 // just for response with limitation role
 public class AccountDto {
 	private int id;
-	private String email;
+	private String username;
 	private UserInforDto userInforDto;
-
-	public AccountDto() {
-		super();
-	}
 
 	public int getId() {
 		return id;
@@ -18,12 +15,24 @@ public class AccountDto {
 		this.id = id;
 	}
 
-	public String getEmail() {
-		return email;
+	public String getUsername() {
+		return username;
 	}
 
-	public void setEmail(String email) {
-		this.email = email;
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public AccountDto(int id, String username, UserInforDto userInforDto) {
+		super();
+		this.id = id;
+		this.username = username;
+		this.userInforDto = userInforDto;
+	}
+
+	public AccountDto() {
+		super();
+		// TODO Auto-generated constructor stub
 	}
 
 	public UserInforDto getUserInforDto() {

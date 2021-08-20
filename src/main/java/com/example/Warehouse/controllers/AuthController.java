@@ -22,7 +22,6 @@ import com.example.Warehouse.entities.Account;
 import com.example.Warehouse.entities.AuthProvider;
 import com.example.Warehouse.entities.Permission;
 import com.example.Warehouse.entities.Role;
-import com.example.Warehouse.entities.UserInfor;
 import com.example.Warehouse.exceptions.BadRequestException;
 import com.example.Warehouse.mapper.AccountMapper;
 import com.example.Warehouse.repositories.PermissionRepository;
@@ -80,29 +79,25 @@ public class AuthController {
 	}
 
 	@PostMapping("/signup")
-	public ResponseEntity<ResponseDto<String>> registerUser(@Valid @RequestBody RegisterDto registerDto) {
-		if (userRepository.existsByEmail(registerDto.getEmail())) {
+	public ResponseEntity<ResponseDto<String>> registerUser(@Valid @RequestBody RegisterDto signUpRequest) {
+		if (userRepository.existsByEmail(signUpRequest.getEmail())) {
 			throw new BadRequestException("Email address already in use.");
 		}
 		// Creating user's account
-		Account account = new Account();
-		account.setEmail(registerDto.getEmail());
-		account.setPassword(registerDto.getPassword());
-		account.setProvider(AuthProvider.local);
-		account.setPassword(passwordEncoder.encode(account.getPassword()));
+		Account user = new Account();
+		user.setEmail(signUpRequest.getEmail());
+		user.setPassword(signUpRequest.getPassword());
+		user.setProvider(AuthProvider.local);
+		user.setPassword(passwordEncoder.encode(user.getPassword()));
 		Role role = roleRepository.findById(1).get();
 		Set<Permission> permissions = new HashSet<>();
 		Permission permission1 = permissionRepository.findById(1).get();
 		Permission permission2 = permissionRepository.findById(2).get();
 		permissions.add(permission1);
 		permissions.add(permission2);
-		UserInfor userInfor=new UserInfor();
-		userInfor.setName(registerDto.getName());
-    	userInfor.setAccount(account);
-    	account.setUserinfor(userInfor);
-		account.setRole(role);
-		account.setPermissions(permissions);
-		Account result = userRepository.save(account);
+		user.setRole(role);
+		user.setPermissions(permissions);
+		Account result = userRepository.save(user);
 
 		URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/user/me")
 				.buildAndExpand(result.getId()).toUri();
