@@ -17,8 +17,6 @@ import com.example.Warehouse.exceptions.EmailIsExistsException;
 import com.example.Warehouse.exceptions.EmptyException;
 import com.example.Warehouse.exceptions.ImportFailException;
 import com.example.Warehouse.repositories.AccountRepository;
-import com.example.Warehouse.repositories.PermissionRepository;
-import com.example.Warehouse.repositories.RoleRepository;
 import com.example.Warehouse.repositories.UserRepository;
 
 //import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -29,13 +27,13 @@ public class AccountService {
 	private AccountRepository accRepo;
 	@Autowired
 	private UserRepository userRepo;
-	
 	@Autowired
 	private BCryptPasswordEncoder encoder;
 	public Account changeAccount(Account oldaccount, Account newaccount) {
 		oldaccount.getUserinfor().setName(newaccount.getUserinfor().getName());
 		oldaccount.getUserinfor().setAddress(newaccount.getUserinfor().getAddress());
-		oldaccount.getUserinfor().setYearOfBirth(newaccount.getUserinfor().getYearOfBirth());
+		oldaccount.getUserinfor().setAge(newaccount.getUserinfor().getAge());
+		oldaccount.getUserinfor().setEmail(newaccount.getUserinfor().getEmail());
 		return oldaccount;
 	}
 	
@@ -65,10 +63,31 @@ public class AccountService {
 			throw new UsernameNotFoundException("Invalid username or password.");
 		}
 	}
+	public Account getByUsernameLogin(String usernameLogin) {
+		Optional<Account> account=this.accRepo.findByEmail(usernameLogin);
+		Optional<UserInfor> userInfor=userRepo.findByEmail(usernameLogin);
+		if(account.isPresent()) {
+			return account.get();
+		}
+		else if(userInfor.isPresent()){
+			return userInfor.get().getAccount();
+		}
+		else {
+			throw new UsernameNotFoundException("Invalid username or password.");
+		}
+	}
 	public Account createAccount(Account account) {
 		Optional<Account> oldaccount = this.accRepo.findByEmail(account.getEmail());
 		if (oldaccount.isPresent()) {
 			throw new AccountIsExistsException(account.getEmail());
+		}
+		Optional<UserInfor> thisuser = this.userRepo.findByEmail(account.getUserinfor().getEmail());
+		if (thisuser.isPresent()) {
+			throw new EmailIsExistsException();
+		}
+		Optional<UserInfor> userEmail = this.userRepo.findByEmail(account.getEmail());
+		if (userEmail.isPresent()) {
+			throw new AccountIsExistsException();
 		}
 		account.setProvider(AuthProvider.local);
 		account.getUserinfor().setAccount(account);
@@ -81,9 +100,9 @@ public class AccountService {
 		if (!oldaccount.isPresent()) {
 			throw new AccountNotFoundException(account.getId());
 		}
-		Optional<Account> existAccount = this.accRepo.findByEmail(account.getEmail());
-		if (existAccount.isPresent() && existAccount.get().getId() != account.getId()) {
-			throw new AccountIsExistsException(account.getEmail());
+		Optional<UserInfor> thisuser = this.userRepo.findByEmail(account.getUserinfor().getEmail());
+		if (thisuser.isPresent() && thisuser.get().getAccount().getId() != account.getId()) {
+			throw new EmailIsExistsException();
 		}
 		Account thisaccount = oldaccount.get();
 		Account result= this.changeAccount(thisaccount, account);
@@ -112,6 +131,9 @@ public class AccountService {
 //    }
 	public void importAccount(List<Account> accounts) {
 		for (Account account : accounts) {
+			if(this.userRepo.findByEmail(account.getEmail()).isPresent()) {
+				throw new AccountIsExistsException();
+			}
 			account.getUserinfor().setAccount(account);
 			account.setPassword(encoder.encode(account.getPassword()));
 		}
