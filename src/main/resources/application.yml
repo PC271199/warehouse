@@ -1,0 +1,30 @@
+JWT_SECRET: 926D96C90030DD58429D2751AC1BDBBC
+spring:
+    datasource:
+        password: cong123
+        platform: postgres
+        url: jdbc:postgresql://localhost:5432/warehouse
+        username: postgres
+    jpa:
+        database: POSTGRESQL
+        generate-ddl: true
+        hibernate:
+            ddl-auto: update
+        properties:
+            hibernate:
+                dialect: org.hibernate.dialect.PostgreSQLDialect
+                jdbc:
+                    lob:
+                        non_contextual_creation: true
+        show-sql: true
+    security:
+        oauth2:
+            client:
+                registration:
+                    google:
+                        clientId: 703736459029-fo1u2s6vo2heu7u5j2pj6apse8g892bp.apps.googleusercontent.com
+                        clientSecret: MFu86V0tfisyEq_fZv0qpJrK
+                        redirectUri: http://localhost:8080/oauth2/callback/google
+                        scope: 
+                          - email
+                          - profile

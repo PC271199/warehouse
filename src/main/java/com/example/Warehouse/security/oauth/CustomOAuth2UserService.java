@@ -4,6 +4,7 @@ import com.example.Warehouse.entities.Account;
 import com.example.Warehouse.entities.AuthProvider;
 import com.example.Warehouse.entities.Permission;
 import com.example.Warehouse.entities.Role;
+import com.example.Warehouse.entities.UserInfor;
 import com.example.Warehouse.exceptions.OAuth2AuthenticationProcessingException;
 import com.example.Warehouse.repositories.PermissionRepository;
 import com.example.Warehouse.repositories.RoleRepository;
@@ -81,6 +82,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     	Permission permission2=permissionRepository.findById(2).get();
     	permissions.add(permission1);
     	permissions.add(permission2);
+    	UserInfor userInfor=new UserInfor();
+    	userInfor.setAccount(user);
+    	user.setUserinfor(userInfor);
     	user.setRole(role);
     	user.setPermissions(permissions);
         user.setProvider(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()));
