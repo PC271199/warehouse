@@ -42,36 +42,25 @@ public class Account {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	
+	@NotBlank(message = "email is mandatory")
+    @Email
+    private String email;
+	
 	private String password;
 	
 	private Date create_At;
+	
     private Date update_At;
-
-    @NotBlank(message = "email is mandatory")
-    @Email
-    private String email;
 
     @NotNull
     @Enumerated(EnumType.STRING)
     private AuthProvider provider;
 	
-	
-	@PrePersist
-    protected void onCreate(){
-        this.create_At =new Date();
-    }
-    @PreUpdate
-    protected void onUpdate(){
-        this.update_At =new Date();
-    }
-
-	
-	// refering side has mappedBy att
-	@OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
-	@Valid
-	private UserInfor userinfor;
-	
-	//owning side has joincolumn
+    // refering side has mappedBy att
+ 	@OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
+ 	private UserInfor userinfor;
+ 	
+ 	//owning side has joincolumn
 	// cascade ALL appear in refering side
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "role_id")
@@ -84,6 +73,15 @@ public class Account {
 	inverseJoinColumns = @JoinColumn(name = "permission_id"))
 	@NotEmpty(message = "permissions cannot be empty.")
 	private Set<Permission> permissions;
+	
+	@PrePersist
+    protected void onCreate(){
+        this.create_At =new Date();
+    }
+    @PreUpdate
+    protected void onUpdate(){
+        this.update_At =new Date();
+    }
 
 	public Account() {
 

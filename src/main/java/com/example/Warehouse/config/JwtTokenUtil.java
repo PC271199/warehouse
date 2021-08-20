@@ -101,7 +101,7 @@ public class JwtTokenUtil implements Serializable {
 
     public String createToken(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        final Account account = this.accountservice.getByUsernameLogin(authentication.getName());
+        final Account account = this.accountservice.getByUserName(authentication.getName());
 		
 		Map<Integer, String> permissions= new HashMap<Integer, String>();
 

@@ -26,13 +26,11 @@ public class Permission {
 	@Column(name = "id", columnDefinition = "serial")
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	private int id;
+	
 	@NotBlank(message = "actionname is mandatory")
-	@NotNull
 	@Length(max = 50, message = "rolename has max-length = 50")
 	private String actname;
 
-	
-	
 	@ManyToMany(fetch = FetchType.LAZY,mappedBy = "permissions")
 	@JsonIgnore
 	private Set<Role> roles;
@@ -40,16 +38,6 @@ public class Permission {
 	@ManyToMany(fetch = FetchType.LAZY,mappedBy = "permissions")
 	@JsonIgnore
 	private Set<Account> accounts;
-
-	public Permission(int id,
-			@NotBlank(message = "actionname is mandatory") @NotNull @Length(max = 50, message = "rolename has max-length = 50") String actname,
-			Set<Role> roles, Set<Account> accounts) {
-		super();
-		this.id = id;
-		this.actname = actname;
-		this.roles = roles;
-		this.accounts = accounts;
-	}
 
 	public Permission() {
 		super();
