@@ -4,6 +4,7 @@ import com.example.Warehouse.entities.Account;
 import com.example.Warehouse.entities.AuthProvider;
 import com.example.Warehouse.entities.Permission;
 import com.example.Warehouse.entities.Role;
+import com.example.Warehouse.entities.UserInfor;
 import com.example.Warehouse.exceptions.OAuth2AuthenticationProcessingException;
 import com.example.Warehouse.repositories.PermissionRepository;
 import com.example.Warehouse.repositories.RoleRepository;
@@ -29,13 +30,12 @@ import java.util.Set;
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-    @Autowired
+	@Autowired
     private AccountRepository accountRepository;
     @Autowired
     private RoleRepository roleRepository;
     @Autowired
     private PermissionRepository permissionRepository;
-    
     @Override
     public OAuth2User loadUser(OAuth2UserRequest oAuth2UserRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(oAuth2UserRequest);
@@ -56,10 +56,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             throw new OAuth2AuthenticationProcessingException("Email not found from OAuth2 provider");
         }
 
-        Optional<Account> userOptional = accountRepository.findByEmail(oAuth2UserInfo.getEmail());
+        Optional<Account> accountOptional = accountRepository.findByEmail(oAuth2UserInfo.getEmail());
         Account user;
-        if(userOptional.isPresent()) {
-            user = userOptional.get();
+        if(accountOptional.isPresent()) {
+            user = accountOptional.get();
             if(!user.getProvider().equals(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()))) {
                 throw new OAuth2AuthenticationProcessingException("Looks like you're signed up with " +
                         user.getProvider() + " account. Please use your " + user.getProvider() +
@@ -72,20 +72,29 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         return UserPrincipal.create(user, oAuth2User.getAttributes());
     }
-
+    //login and register with oauth2
     private Account registerNewUser(OAuth2UserRequest oAuth2UserRequest, OAuth2UserInfo oAuth2UserInfo) {
-    	Account user = new Account();
-    	Role role=roleRepository.findById(1).get();
+    	Account account = new Account();
+    	if(roleRepository.findById(1).isPresent()) {
+    		Role role=roleRepository.findById(1).get();
+    		account.setRole(role);
+    	}
     	Set<Permission> permissions= new HashSet<>();
-    	Permission permission1=permissionRepository.findById(1).get();
-    	Permission permission2=permissionRepository.findById(2).get();
-    	permissions.add(permission1);
-    	permissions.add(permission2);
-    	user.setRole(role);
-    	user.setPermissions(permissions);
-        user.setProvider(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()));
-        user.setEmail(oAuth2UserInfo.getEmail());
-        return accountRepository.save(user);
+    	if(permissionRepository.findById(1).isPresent()) {
+    		Permission permission1=permissionRepository.findById(1).get();
+    		permissions.add(permission1);
+    	}
+    	if(permissionRepository.findById(2).isPresent()) {
+    		Permission permission2=permissionRepository.findById(2).get();
+    		permissions.add(permission2);
+    	}
+    	UserInfor userInfor=new UserInfor();
+    	userInfor.setAccount(account);
+    	account.setUserinfor(userInfor);
+    	account.setPermissions(permissions);
+    	account.setProvider(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()));
+    	account.setEmail(oAuth2UserInfo.getEmail());
+        return accountRepository.save(account);
     }
 
     private Account updateExistingUser(Account existingUser, OAuth2UserInfo oAuth2UserInfo) {

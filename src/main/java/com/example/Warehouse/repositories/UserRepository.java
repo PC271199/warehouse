@@ -17,10 +17,7 @@ import com.example.Warehouse.entities.UserInfor;
 public interface UserRepository extends JpaRepository<UserInfor, Integer> {
 	@Query(value = "Select * from users where account_id = :accountId",nativeQuery = true)
 	public UserInfor findByAccountId(@Param("accountId") int accountId);
-	
- 
-	public Optional<UserInfor> findByEmail(String email);
-	
+		
 	@Modifying
 	@Query(value = "Delete from users where account_id = :accountId",nativeQuery = true)
 	public void deleteByAccountId(@Param("accountId") int accountId);
