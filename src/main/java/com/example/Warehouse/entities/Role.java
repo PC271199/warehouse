@@ -30,10 +30,11 @@ public class Role {
 	@Column(name = "id", columnDefinition = "serial")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	
 	@NotBlank(message = "rolename is mandatory")
+	@NotNull
 	@Length(max = 50, message = "rolename has max-length = 50")
 	private String rolename;
+	
 	
 	// refering side has mappedBy att
 	@OneToMany(fetch = FetchType.LAZY,mappedBy = "role",cascade = CascadeType.ALL)
@@ -45,11 +46,15 @@ public class Role {
 	joinColumns = @JoinColumn(name = "role_id"),
 	inverseJoinColumns = @JoinColumn(name = "permission_id"))
 	private Set<Permission> permissions;
-	
-	public Role() {
+
+	public Role(int id,
+			@NotBlank(message = "rolename is mandatory") @NotNull @Length(max = 50, message = "rolename has max-length = 50") String rolename,
+			Set<Account> accounts) {
 		super();
+		this.id = id;
+		this.rolename = rolename;
+		this.accounts = accounts;
 	}
-	
 
 	public int getId() {
 		return id;
@@ -73,6 +78,11 @@ public class Role {
 
 	public void setAccounts(Set<Account> accounts) {
 		this.accounts = accounts;
+	}
+
+	public Role() {
+		super();
+		// TODO Auto-generated constructor stub
 	}
 
 	public Set<Permission> getPermissions() {
