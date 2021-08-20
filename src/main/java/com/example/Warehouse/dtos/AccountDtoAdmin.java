@@ -19,41 +19,49 @@ import com.example.Warehouse.entities.Role;
 
 // just for response and request with full permission
 public class AccountDtoAdmin {
+
 	private int id;
-	
-	@NotBlank(message = "email is mandatory")
-    @Email
+//	@NotBlank(message = "email is mandatory")
+//    @Email
 	private String email;
-	
-	@NotBlank(message = "password is mandatory")
-	@Length(max = 100, message = "Password has max-length = 100")
-	@Pattern(regexp = "(?=^.{8,}$)((?=.*\\d)|(?=.*\\W+))(?![.\\n])(?=.*[A-Z])(?=.*[a-z]).*$", message = "Password must be 8 characters including 1 uppercase letter, 1 lowercase letter and numeric characters")
+//	@NotBlank(message = "password is mandatory")
+//	@NotNull
+//	@Length(max = 100, message = "Password has max-length = 100")
+//	@Pattern(regexp = "(?=^.{8,}$)((?=.*\\d)|(?=.*\\W+))(?![.\\n])(?=.*[A-Z])(?=.*[a-z]).*$", message = "Password must be 8 characters including 1 uppercase letter, 1 lowercase letter and numeric characters")
 	private String password;
-	
+//	@Valid
 	private UserInforDto userinforDto;
-	
-	@Valid
+//	@Valid
 	private Role role;
-	
-	@Valid
-	@NotEmpty(message = "permissions must not be empty")
+//	@Valid
+//	@NotEmpty(message = "permissions must not be empty")
 	private Set<Permission> permissions;
-	
 	@Enumerated(EnumType.STRING)
     private AuthProvider provider;
-	
 	public AccountDtoAdmin() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 
+	public AccountDtoAdmin(int id, String email, String password, UserInforDto userinforDto, Role role,
+			Set<Permission> permissions) {
+		super();
+		this.id = id;
+		this.email = email;
+		this.password = password;
+		this.userinforDto = userinforDto;
+		this.role = role;
+		this.permissions = permissions;
+	}
+
 	public int getId() {
 		return id;
 	}
-
 	public void setId(int id) {
 		this.id = id;
 	}
+
+
 
 	public String getEmail() {
 		return email;
@@ -102,9 +110,6 @@ public class AccountDtoAdmin {
 	public void setProvider(AuthProvider provider) {
 		this.provider = provider;
 	}
-
-
-	
 
 	
 }

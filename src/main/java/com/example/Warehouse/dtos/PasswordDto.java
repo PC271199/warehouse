@@ -23,14 +23,17 @@ public class PasswordDto {
 	}
 
 	@NotBlank(message = "password can't be blank")
+	@NotNull
 	private int accountId;
 
 	@Length(max = 100, message = "Password has max-length = 100")
 	@NotBlank(message = "password can't be blank")
+	@NotNull
 	private String oldPassword;
 
 	@Length(max = 100, message = "Password has max-length = 100")
 	@NotBlank(message = "password can't be blank")
+	@NotNull
 	private String newPassword;
 
 	private String confirmPassword;

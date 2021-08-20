@@ -42,26 +42,36 @@ public class Account {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	
-	@NotBlank(message = "email is mandatory")
-    @Email
-    private String email;
-	
 	private String password;
 	
 	private Date create_At;
-	
     private Date update_At;
-    
+
+    @NotBlank(message = "email is mandatory")
+    @Email
+    private String email;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     private AuthProvider provider;
-    
-    
- // refering side has mappedBy att
- 	@OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
- 	private UserInfor userinfor;
- 	
- 	//owning side has joincolumn
+	
+	
+	@PrePersist
+    protected void onCreate(){
+        this.create_At =new Date();
+    }
+    @PreUpdate
+    protected void onUpdate(){
+        this.update_At =new Date();
+    }
+
+	
+	// refering side has mappedBy att
+	@OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
+	@Valid
+	private UserInfor userinfor;
+	
+	//owning side has joincolumn
 	// cascade ALL appear in refering side
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "role_id")
@@ -74,36 +84,46 @@ public class Account {
 	inverseJoinColumns = @JoinColumn(name = "permission_id"))
 	@NotEmpty(message = "permissions cannot be empty.")
 	private Set<Permission> permissions;
-	
+
 	public Account() {
-		super();
+
 	}
-	
-	@PrePersist
-    protected void onCreate(){
-        this.create_At =new Date();
-    }
-    @PreUpdate
-    protected void onUpdate(){
-        this.update_At =new Date();
-    }
 	public int getId() {
 		return id;
 	}
+
 	public void setId(int id) {
 		this.id = id;
 	}
-	public String getEmail() {
-		return email;
-	}
-	public void setEmail(String email) {
-		this.email = email;
-	}
+
+
 	public String getPassword() {
 		return password;
 	}
+	
+
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public void setUser(UserInfor userinfor) {
+		this.userinfor = userinfor;
+	}
+
+	public Role getRole() {
+		return role;
+	}
+
+	public void setRole(Role role) {
+		this.role = role;
+	}
+
+	public Set<Permission> getPermissions() {
+		return permissions;
+	}
+
+	public void setPermissions(Set<Permission> permissions) {
+		this.permissions = permissions;
 	}
 	public Date getCreate_At() {
 		return create_At;
@@ -117,30 +137,23 @@ public class Account {
 	public void setUpdate_At(Date update_At) {
 		this.update_At = update_At;
 	}
-	public AuthProvider getProvider() {
-		return provider;
-	}
-	public void setProvider(AuthProvider provider) {
-		this.provider = provider;
-	}
 	public UserInfor getUserinfor() {
 		return userinfor;
 	}
 	public void setUserinfor(UserInfor userinfor) {
 		this.userinfor = userinfor;
 	}
-	public Role getRole() {
-		return role;
+	public String getEmail() {
+		return email;
 	}
-	public void setRole(Role role) {
-		this.role = role;
+	public void setEmail(String email) {
+		this.email = email;
 	}
-	public Set<Permission> getPermissions() {
-		return permissions;
+	public AuthProvider getProvider() {
+		return provider;
 	}
-	public void setPermissions(Set<Permission> permissions) {
-		this.permissions = permissions;
+	public void setProvider(AuthProvider provider) {
+		this.provider = provider;
 	}
-
 	
 }
