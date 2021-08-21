@@ -86,6 +86,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
         .addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         http.cors().and().csrf().disable().
                 authorizeRequests()
+                .antMatchers("/",
+                        "/error",
+                        "/favicon.ico",
+                        "/**/*.png",
+                        "/**/*.gif",
+                        "/**/*.svg",
+                        "/**/*.jpg",
+                        "/**/*.html",
+                        "/**/*.css",
+                        "/**/*.js")
+                        .permitAll()
                 .antMatchers("/auth/**","/oauth/callback","/rest-account/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
