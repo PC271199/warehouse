@@ -1,0 +1,30 @@
+JWT_SECRET: 926D96C90030DD58429D2751AC1BDBBC
+spring:
+    datasource:
+        password: 982a81372031c595a933872d2fbca2b8d0636c4a8ea7df8151657a2855a8d6c1
+        platform: postgres
+        url: jdbc:postgresql://ec2-54-147-93-73.compute-1.amazonaws.com/dd168ip0o5uc9
+        username: qeypinkqlvdvsw
+    jpa:
+        database: POSTGRESQL
+        generate-ddl: true
+        hibernate:
+            ddl-auto: update
+        properties:
+            hibernate:
+                dialect: org.hibernate.dialect.PostgreSQLDialect
+                jdbc:
+                    lob:
+                        non_contextual_creation: true
+        show-sql: true
+    security:
+        oauth2:
+            client:
+                registration:
+                    google:
+                        clientId: 703736459029-fo1u2s6vo2heu7u5j2pj6apse8g892bp.apps.googleusercontent.com
+                        clientSecret: MFu86V0tfisyEq_fZv0qpJrK
+                        redirectUri: https://warehouse-test-app.herokuapp.com/oauth2/callback/google
+                        scope: 
+                          - email
+                          - profile
