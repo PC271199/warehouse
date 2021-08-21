@@ -33,12 +33,6 @@ public class AccountController {
 	private AccountAdminMapper accAdminMap;
 	@Autowired
 	private AccountMapper accMap;
-
-	@RequestMapping(value = "/test", method = RequestMethod.GET)
-	public ResponseEntity<String> test() {
-		
-		return new ResponseEntity<String>("day la test", HttpStatus.OK);
-	}
 	
 	@RequestMapping(value = "/accounts", method = RequestMethod.GET)
 	public ResponseEntity<ResponseDto<List<AccountDtoAdmin>>> getAccountList() {

@@ -133,21 +133,13 @@
 				</configuration>
 			</plugin>
 			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
 				<artifactId>maven-deploy-plugin</artifactId>
 				<configuration>
 					<skip>true</skip>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>com.heroku.sdk</groupId>
-				<artifactId>heroku-maven-plugin</artifactId>
-				<version>0.3.4</version>
-				<configuration>
-					<appName>${heroku.appName}</appName>
-					<includeTarget>false</includeTarget>
-					<includes>
-						<include>target/${project.build.finalName}-${project.version}.jar</include>
-					</includes>
 				</configuration>
 			</plugin>
 		</plugins>
