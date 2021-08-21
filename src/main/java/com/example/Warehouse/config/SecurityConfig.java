@@ -86,7 +86,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
         .addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         http.cors().and().csrf().disable().
                 authorizeRequests()
-                .antMatchers("/auth/**","/oauth/callback").permitAll()
+                .antMatchers("/auth/**","/oauth/callback","/rest-account/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .oauth2Login()
