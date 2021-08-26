@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,6 +43,13 @@ public class AccountController {
 		ResponseDto<List<AccountDtoAdmin>> result = new ResponseDto<List<AccountDtoAdmin>>(accountDtos,
 				HttpStatus.OK.value());
 		return new ResponseEntity<ResponseDto<List<AccountDtoAdmin>>>(result, HttpStatus.OK);
+	}
+	@RequestMapping(value = "/accounts/page/{pageIndex}", method = RequestMethod.GET)
+	public ResponseEntity<ResponseDto<Page<AccountDtoAdmin>>> getAccountListByPage(@PathVariable int pageIndex) {
+		Page<AccountDtoAdmin> accounts = accser.getAllByPage(pageIndex);
+		ResponseDto<Page<AccountDtoAdmin>> result = new ResponseDto<Page<AccountDtoAdmin>>(accounts,
+				HttpStatus.OK.value());
+		return new ResponseEntity<ResponseDto<Page<AccountDtoAdmin>>>(result, HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/accounts/{accountId}", method = RequestMethod.GET)

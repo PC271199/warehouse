@@ -24,10 +24,7 @@ public class AccountDtoAdmin {
 	@NotBlank(message = "email is mandatory")
     @Email
 	private String email;
-	@NotBlank(message = "password is mandatory")
-	@Length(max = 100, message = "Password has max-length = 100")
-	@Pattern(regexp = "(?=^.{8,}$)((?=.*\\d)|(?=.*\\W+))(?![.\\n])(?=.*[A-Z])(?=.*[a-z]).*$", message = "Password must be 8 characters including 1 uppercase letter, 1 lowercase letter and numeric characters")
-	private String password;
+	
 	private UserInforDto userinforDto;
 	@Valid
 	private Role role;
@@ -59,13 +56,6 @@ public class AccountDtoAdmin {
 		this.email = email;
 	}
 
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
 
 	public UserInforDto getUserinforDto() {
 		return userinforDto;
