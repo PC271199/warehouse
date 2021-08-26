@@ -4,10 +4,13 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.example.Warehouse.dtos.AccountDtoAdmin;
 import com.example.Warehouse.entities.Account;
 import com.example.Warehouse.entities.AuthProvider;
 import com.example.Warehouse.entities.UserInfor;
@@ -16,6 +19,7 @@ import com.example.Warehouse.exceptions.AccountNotFoundException;
 import com.example.Warehouse.exceptions.EmailIsExistsException;
 import com.example.Warehouse.exceptions.EmptyException;
 import com.example.Warehouse.exceptions.ImportFailException;
+import com.example.Warehouse.mapper.AccountAdminMapper;
 import com.example.Warehouse.repositories.AccountRepository;
 import com.example.Warehouse.repositories.UserRepository;
 
@@ -27,6 +31,8 @@ public class AccountService {
 	private AccountRepository accRepo;
 	@Autowired
 	private UserRepository userRepo;
+	@Autowired
+	private AccountAdminMapper accAdminMap;
 	@Autowired
 	private BCryptPasswordEncoder encoder;
 	public Account changeAccount(Account oldaccount, Account newaccount) {
@@ -40,6 +46,19 @@ public class AccountService {
 		List<Account> result= accRepo.findAll();
 		if (result.size()>0) {
 			return result;
+		}
+		else {
+			throw new EmptyException();
+		}
+	}
+	public Page<AccountDtoAdmin> getAllByPage(int pageIndex){
+		Page<Account> result=accRepo.findAll(PageRequest.of(pageIndex, 5));
+		Page<AccountDtoAdmin> resultDto=result.map(account->{
+			AccountDtoAdmin accountDtoAdmin=accAdminMap.toAccountDtoAdmin(account);
+			return accountDtoAdmin;
+		});
+		if(result.getSize()>0) {
+			return resultDto;
 		}
 		else {
 			throw new EmptyException();
