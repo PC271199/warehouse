@@ -1,7 +1,7 @@
 spring:
     cloud:
        config:
-          uri: https://configserver-app.herokuapp.com
+          uri: ${CONFIGSERVER_URL}
 management:
       security:
          enabled: false
