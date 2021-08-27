@@ -2,4 +2,4 @@ spring:
     profiles:
       active: prod
     application.name: warehouse-service
-    config.import: optional:configserver:https://configserver-app.herokuapp.com
+    config.import: optional:configserver:${CONFIGSERVER_URL}
