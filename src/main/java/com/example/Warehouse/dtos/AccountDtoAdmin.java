@@ -8,10 +8,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 
-import org.hibernate.validator.constraints.Length;
 
 import com.example.Warehouse.entities.AuthProvider;
 import com.example.Warehouse.entities.Permission;
@@ -24,6 +21,8 @@ public class AccountDtoAdmin {
 	@NotBlank(message = "email is mandatory")
     @Email
 	private String email;
+	
+	private String password;
 	
 	private UserInforDto userinforDto;
 	@Valid
@@ -87,6 +86,14 @@ public class AccountDtoAdmin {
 
 	public void setProvider(AuthProvider provider) {
 		this.provider = provider;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 

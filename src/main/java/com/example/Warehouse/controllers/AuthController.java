@@ -15,6 +15,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.example.Warehouse.config.AuthToken;
 import com.example.Warehouse.config.JwtTokenUtil;
+import com.example.Warehouse.dtos.AccountDto;
 import com.example.Warehouse.dtos.LoginDto;
 import com.example.Warehouse.dtos.RegisterDto;
 import com.example.Warehouse.dtos.ResponseDto;
@@ -23,8 +24,11 @@ import com.example.Warehouse.entities.AuthProvider;
 import com.example.Warehouse.entities.Permission;
 import com.example.Warehouse.entities.Role;
 import com.example.Warehouse.entities.UserInfor;
+import com.example.Warehouse.exceptions.AccountIsExistsException;
 import com.example.Warehouse.exceptions.BadRequestException;
+import com.example.Warehouse.exceptions.PasswordIsNotMatchException;
 import com.example.Warehouse.mapper.AccountMapper;
+import com.example.Warehouse.mapper.RegisterMapper;
 import com.example.Warehouse.repositories.PermissionRepository;
 import com.example.Warehouse.repositories.RoleRepository;
 import com.example.Warehouse.services.AccountService;
@@ -48,15 +52,10 @@ public class AuthController {
 	private AuthenticationManager authenticationManager;
 
 	@Autowired
-	private AccountRepository userRepository;
+	private AccountRepository accountRepository;
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
-
-	@Autowired
-	private RoleRepository roleRepository;
-	@Autowired
-	private PermissionRepository permissionRepository;
 
 	@Autowired
 	private JwtTokenUtil tokenProvider;
@@ -65,10 +64,12 @@ public class AuthController {
 	@Autowired
 	private AccountMapper accmap;
 	@Autowired
+	private RegisterMapper registermap;
+	@Autowired
 	private AccountService accser;
 
 	@PostMapping("/login")
-	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginDto loginRequest) {
+	public ResponseEntity<ResponseDto<Object>> authenticateUser(@Valid @RequestBody LoginDto loginRequest) {
 
 		Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
@@ -76,33 +77,20 @@ public class AuthController {
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 
 		String token = tokenProvider.createToken(authentication);
-		return ResponseEntity.ok(new AuthToken(token));
+		ResponseDto<Object> result = new ResponseDto<Object>(new AuthToken(token), HttpStatus.OK.value());
+		return new ResponseEntity<ResponseDto<Object>>(result, HttpStatus.OK);
 	}
 
-	@PostMapping("/signup")
+	@PostMapping("/register")
 	public ResponseEntity<ResponseDto<String>> registerUser(@Valid @RequestBody RegisterDto signUpRequest) {
-		if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-			throw new BadRequestException("Email address already in use.");
+		if (accountRepository.existsByEmail(signUpRequest.getEmail())) {
+			throw new AccountIsExistsException();
+		}
+		if (!signUpRequest.getPassword().equals(signUpRequest.getConfirmPassword())) {
+			throw new PasswordIsNotMatchException("Your confirm password is not matched");
 		}
 		// Creating user's account
-		Account user = new Account();
-		user.setEmail(signUpRequest.getEmail());
-		user.setPassword(signUpRequest.getPassword());
-		user.setProvider(AuthProvider.local);
-		user.setPassword(passwordEncoder.encode(user.getPassword()));
-		UserInfor userInfor=new UserInfor();
-		userInfor.setName(signUpRequest.getName());
-		userInfor.setAccount(user);
-		Role role = roleRepository.findById(1).get();
-		Set<Permission> permissions = new HashSet<>();
-		Permission permission1 = permissionRepository.findById(1).get();
-		Permission permission2 = permissionRepository.findById(2).get();
-		permissions.add(permission1);
-		permissions.add(permission2);
-		user.setUserinfor(userInfor);
-		user.setRole(role);
-		user.setPermissions(permissions);
-		Account result = userRepository.save(user);
+		Account result = accser.add(registermap.toAccountEntity(signUpRequest));
 
 		URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/user/me")
 				.buildAndExpand(result.getId()).toUri();

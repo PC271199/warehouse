@@ -10,7 +10,7 @@ public class AccountIsExistsException extends RuntimeException {
         super(username + " exists");
     }
 	public AccountIsExistsException() {
-       
+       super("Account exists");
     }
 	
 }

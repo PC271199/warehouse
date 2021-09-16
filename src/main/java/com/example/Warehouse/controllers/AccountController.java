@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.Warehouse.dtos.AccountDto;
 import com.example.Warehouse.dtos.AccountDtoAdmin;
+import com.example.Warehouse.dtos.AccountEditDto;
+import com.example.Warehouse.dtos.PasswordDto;
 import com.example.Warehouse.dtos.ResponseDto;
 import com.example.Warehouse.entities.Account;
 import com.example.Warehouse.exceptions.ImportFailException;
@@ -24,6 +28,7 @@ import com.example.Warehouse.mapper.AccountMapper;
 import com.example.Warehouse.services.AccountService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 // add comment here
 @RestController
 @RequestMapping(value = "/rest-account")
@@ -34,7 +39,7 @@ public class AccountController {
 	private AccountAdminMapper accAdminMap;
 	@Autowired
 	private AccountMapper accMap;
-	
+
 	@RequestMapping(value = "/accounts", method = RequestMethod.GET)
 	public ResponseEntity<ResponseDto<List<AccountDtoAdmin>>> getAccountList() {
 		List<Account> accounts = accser.getAll();
@@ -44,6 +49,7 @@ public class AccountController {
 				HttpStatus.OK.value());
 		return new ResponseEntity<ResponseDto<List<AccountDtoAdmin>>>(result, HttpStatus.OK);
 	}
+
 	@RequestMapping(value = "/accounts/page/{pageIndex}", method = RequestMethod.GET)
 	public ResponseEntity<ResponseDto<Page<AccountDtoAdmin>>> getAccountListByPage(@PathVariable int pageIndex) {
 		Page<AccountDtoAdmin> accounts = accser.getAllByPage(pageIndex);
@@ -55,6 +61,14 @@ public class AccountController {
 	@RequestMapping(value = "/accounts/{accountId}", method = RequestMethod.GET)
 	public ResponseEntity<ResponseDto<AccountDto>> getAccountById(@PathVariable int accountId) {
 		Account thisaccount = accser.getById(accountId);
+		AccountDto accountDto = accMap.toAccountDTO(thisaccount);
+		ResponseDto<AccountDto> result = new ResponseDto<AccountDto>(accountDto, HttpStatus.OK.value());
+		return new ResponseEntity<ResponseDto<AccountDto>>(result, HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "/accounts/codeId/{codeId}", method = RequestMethod.GET)
+	public ResponseEntity<ResponseDto<AccountDto>> getAccountById(@PathVariable String codeId) {
+		Account thisaccount = accser.getByCodeId(codeId);
 		AccountDto accountDto = accMap.toAccountDTO(thisaccount);
 		ResponseDto<AccountDto> result = new ResponseDto<AccountDto>(accountDto, HttpStatus.OK.value());
 		return new ResponseEntity<ResponseDto<AccountDto>>(result, HttpStatus.OK);
@@ -84,6 +98,13 @@ public class AccountController {
 		return new ResponseEntity<ResponseDto<Object>>(result, HttpStatus.OK);
 	}
 
+	@RequestMapping(value = "/accounts", method = RequestMethod.DELETE)
+	public ResponseEntity<ResponseDto<Object>> deleteAll() {
+		accser.deleteAll();
+		ResponseDto<Object> result = new ResponseDto<Object>("Delete successfully", HttpStatus.OK.value());
+		return new ResponseEntity<ResponseDto<Object>>(result, HttpStatus.OK);
+	}
+
 	@RequestMapping(value = "/accounts/data", method = RequestMethod.POST)
 	public ResponseEntity<Object> importdata() {
 		ObjectMapper mapper = new ObjectMapper();
@@ -91,12 +112,37 @@ public class AccountController {
 		};
 		InputStream inputStream = TypeReference.class.getResourceAsStream("/file/data.json");
 		try {
-			List<AccountDtoAdmin> accounts=mapper.readValue(inputStream, typeReference);
+			List<AccountDtoAdmin> accounts = mapper.readValue(inputStream, typeReference);
 			accser.importAccount(accAdminMap.toAccountEntities(accounts));
 		} catch (Exception e) {
 			System.out.println(e);
 			throw new ImportFailException();
 		}
 		return new ResponseEntity<Object>("", HttpStatus.OK);
+	}
+
+	@PutMapping("/changePass")
+	public ResponseEntity<Object> changePassword(@Valid @RequestBody PasswordDto passwordDto) {
+		this.accser.changePassWord(passwordDto);
+		return new ResponseEntity<Object>("Change Password successfully", HttpStatus.OK);
+	}
+
+	@PutMapping("/changePassInitial")
+	public ResponseEntity<Object> changePasswordInitial(@Valid @RequestBody PasswordDto passwordDto) {
+		this.accser.changePassWordInitial(passwordDto);
+		return new ResponseEntity<Object>("Change Password successfully", HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "/editUserInfor", method = RequestMethod.PUT)
+	public ResponseEntity<ResponseDto<AccountDto>> editUserInfor(@Valid @RequestBody AccountEditDto accountEditDto) {
+		Account result = accser.edit(accountEditDto);
+		return new ResponseEntity<ResponseDto<AccountDto>>(
+				new ResponseDto<AccountDto>(accMap.toAccountDTO(result), HttpStatus.OK.value()), HttpStatus.OK);
+	}
+	@RequestMapping(value = "/accounts/verify/{verifyToken}", method = RequestMethod.GET)
+	public ResponseEntity<ResponseDto<AccountDto>> confirmRegisterLocal(@PathVariable String verifyToken) {
+		Account result = accser.verifyAccount(verifyToken);
+		return new ResponseEntity<ResponseDto<AccountDto>>(
+				new ResponseDto<AccountDto>(accMap.toAccountDTO(result), HttpStatus.OK.value()), HttpStatus.OK);
 	}
 }

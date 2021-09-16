@@ -15,8 +15,6 @@ public class AccountDto {
 		this.id = id;
 	}
 
-
-
 	public String getEmail() {
 		return email;
 	}

@@ -9,8 +9,6 @@ import javax.validation.constraints.Pattern;
  */
 
 public class RegisterDto {
-    @NotBlank
-    private String name;
 
     @NotBlank
     @Email
@@ -19,14 +17,10 @@ public class RegisterDto {
     @NotBlank
 	@Pattern(regexp = "(?=^.{8,}$)((?=.*\\d)|(?=.*\\W+))(?![.\\n])(?=.*[A-Z])(?=.*[a-z]).*$", message = "Password must be 8 characters including 1 uppercase letter, 1 lowercase letter and numeric characters")
     private String password;
+    
+    @NotBlank
+    private String confirmPassword;
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public String getEmail() {
         return email;
@@ -43,4 +37,13 @@ public class RegisterDto {
     public void setPassword(String password) {
         this.password = password;
     }
+
+	public String getConfirmPassword() {
+		return confirmPassword;
+	}
+
+	public void setConfirmPassword(String confirmPassword) {
+		this.confirmPassword = confirmPassword;
+	}
+    
 }

@@ -10,20 +10,37 @@ import org.hibernate.validator.constraints.Length;
 
 // just for response
 public class UserInforDto {
-	private String name;
+	private String fullname;
 	private String address;
-	private Date yearOfBirth;
+	private Date dateOfBirth;
+	private String cmnd;
+	public String getCmnd() {
+		return cmnd;
+	}
+
+	public void setCmnd(String cmnd) {
+		this.cmnd = cmnd;
+	}
+
 	public UserInforDto() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 
-	public String getName() {
-		return name;
+	public String getFullname() {
+		return fullname;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setFullname(String fullname) {
+		this.fullname = fullname;
+	}
+
+	public Date getDateOfBirth() {
+		return dateOfBirth;
+	}
+
+	public void setDateOfBirth(Date dateOfBirth) {
+		this.dateOfBirth = dateOfBirth;
 	}
 
 	public String getAddress() {
@@ -33,15 +50,5 @@ public class UserInforDto {
 	public void setAddress(String address) {
 		this.address = address;
 	}
-
-	public Date getYearOfBirth() {
-		return yearOfBirth;
-	}
-
-	public void setYearOfBirth(Date yearOfBirth) {
-		this.yearOfBirth = yearOfBirth;
-	}
-
-	
 
 }
