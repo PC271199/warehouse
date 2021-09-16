@@ -1,6 +1,6 @@
 spring:
     profiles:
-      active: dev
+      active: prod
     application.name: warehouse-service
 #    config.import: optional:configserver:http://localhost:8088
     config.import: optional:configserver:${CONFIGSERVER_URL} #for production
