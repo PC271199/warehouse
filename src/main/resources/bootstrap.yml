@@ -1,7 +1,8 @@
 spring:
     cloud:
        config:
-          uri: ${CONFIGSERVER_URL}
+#          uri: http://localhost:8088
+          uri: ${CONFIGSERVER_URL} #for production
 management:
       security:
          enabled: false

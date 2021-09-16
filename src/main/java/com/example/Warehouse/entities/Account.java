@@ -28,11 +28,6 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-
-import org.hibernate.validator.constraints.Length;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "account", schema = "public",uniqueConstraints={@UniqueConstraint(columnNames={"email"})})
@@ -60,6 +55,9 @@ public class Account {
  	@OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
  	private UserInfor userinfor;
  	
+ 	@OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
+ 	private VerificationToken verificationToken;
+ 	
  	//owning side has joincolumn
 	// cascade ALL appear in refering side
 	@ManyToOne(fetch = FetchType.EAGER)
@@ -74,6 +72,25 @@ public class Account {
 	@NotEmpty(message = "permissions cannot be empty.")
 	private Set<Permission> permissions;
 	
+	
+	private String codeId;
+	@Column(nullable = true)
+	private boolean enabled;
+	
+	
+	
+	public boolean isEnabled() {
+		return enabled;
+	}
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+	public String getCodeId() {
+		return codeId;
+	}
+	public void setCodeId(String codeId) {
+		this.codeId = codeId;
+	}
 	@PrePersist
     protected void onCreate(){
         this.create_At =new Date();
@@ -84,7 +101,7 @@ public class Account {
     }
 
 	public Account() {
-
+		this.enabled=false;
 	}
 	public int getId() {
 		return id;
@@ -152,6 +169,12 @@ public class Account {
 	}
 	public void setProvider(AuthProvider provider) {
 		this.provider = provider;
+	}
+	public VerificationToken getVerificationToken() {
+		return verificationToken;
+	}
+	public void setVerificationToken(VerificationToken verificationToken) {
+		this.verificationToken = verificationToken;
 	}
 	
 }

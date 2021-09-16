@@ -119,6 +119,7 @@ public class JwtTokenUtil implements Serializable {
                 .setSubject(authentication.getName())
                 .claim("roles", authorities)
 				.claim("id", (userPrincipal.getId()))
+				.claim("enabled", userPrincipal)
 				.claim("permissions", permissions)
                 .setIssuedAt(new Date())
                 .setExpiration(expiryDate)

@@ -2,7 +2,7 @@ package com.example.Warehouse.dtos;
 
 import java.util.ArrayList;
 import java.util.Date;
-
+import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.validation.FieldError;
@@ -16,16 +16,16 @@ public class ResponseDto<T> extends ResponseEntityExceptionHandler {
 	private Date timestamp = new Date();
 	private String message = "";
 	private T data = null;
-	private List<String> errors;
+	private HashMap<String, String> errors;
 	private int status;
 	public ResponseDto() {
 		
 	}
 	public ResponseDto(MethodArgumentNotValidException ex) {
-        this.errors=new ArrayList<String>();
+        this.errors=new HashMap<>();
         List<FieldError> ers=ex.getBindingResult().getFieldErrors();
         for(FieldError i : ers) {
-            this.errors.add(i.getField()+":"+i.getDefaultMessage()+"\n");
+            this.errors.put(i.getField(),i.getDefaultMessage());
         }
     }
 	public int getStatus() {
@@ -60,11 +60,11 @@ public class ResponseDto<T> extends ResponseEntityExceptionHandler {
 		this.data = data;
 	}
 
-	public List<String> getErrors() {
+	public HashMap<String, String> getErrors() {
 		return errors;
 	}
 
-	public void setErrors(List<String> errors) {
+	public void setErrors(HashMap<String, String> errors) {
 		this.errors = errors;
 	}
 
@@ -79,7 +79,7 @@ public class ResponseDto<T> extends ResponseEntityExceptionHandler {
 		this.data = data;
 		this.status=status;
 	}
-	public ResponseDto(List<String> errors) {
+	public ResponseDto(HashMap<String, String> errors) {
 		this.errors=errors;
 	}
 }

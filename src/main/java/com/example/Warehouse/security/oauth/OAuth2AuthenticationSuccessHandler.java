@@ -64,6 +64,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String token = tokenProvider.createToken(authentication);
 
         return UriComponentsBuilder.fromUriString(targetUrl)
+        		//determine whether login or not
                 .queryParam("token", token)
                 .build().toUriString();
     }
@@ -77,6 +78,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         URI clientRedirectUri = URI.create(uri);
         List<String> authorizedRedirectUris = new ArrayList<>();
         authorizedRedirectUris.add("http://localhost:3000/oauth2/redirect");
+//        authorizedRedirectUris.add("https://www.google.com/");
         return authorizedRedirectUris
                 .stream()
                 .anyMatch(authorizedRedirectUri -> {

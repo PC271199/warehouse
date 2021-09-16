@@ -18,36 +18,45 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     private String email;
     private String password;
     private Collection<? extends GrantedAuthority> authorities;
+    private boolean enabled;
     private Map<String, Object> attributes;
 
-    public UserPrincipal(int id, String email, String password, Collection<? extends GrantedAuthority> authorities) {
+    public UserPrincipal(int id, String email, String password,boolean enabled, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.authorities = authorities;
+        this.enabled=enabled;
     }
 
     public static UserPrincipal create(Account account) {
-    	List<GrantedAuthority> authorities=new ArrayList<GrantedAuthority>();
-    	if(account.getRole()==null) {
-    		authorities= Collections.
-                    singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+    	if(account!=null) {
+    		List<GrantedAuthority> authorities=new ArrayList<GrantedAuthority>();
+        	if(account.getRole()==null) {
+        		authorities= Collections.
+                        singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+        	}
+        	else {
+        		authorities.add(new SimpleGrantedAuthority(account.getRole().getRolename()));
+        	}
+            return new UserPrincipal(
+            		account.getId(),
+            		account.getEmail(),
+            		account.getPassword(),
+            		account.isEnabled(),
+                    authorities
+            );
     	}
-    	else {
-    		authorities.add(new SimpleGrantedAuthority(account.getRole().getRolename()));
-    	}
-        return new UserPrincipal(
-        		account.getId(),
-        		account.getEmail(),
-        		account.getPassword(),
-                authorities
-        );
+    	else return null;
     }
 
     public static UserPrincipal create(Account account, Map<String, Object> attributes) {
         UserPrincipal userPrincipal = UserPrincipal.create(account);
-        userPrincipal.setAttributes(attributes);
-        return userPrincipal;
+        if(userPrincipal!=null) {
+        	userPrincipal.setAttributes(attributes);
+            return userPrincipal;
+        }
+        else return null;
     }
 
     public int getId() {
@@ -85,7 +94,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
     }
 
     @Override
