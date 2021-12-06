@@ -3,8 +3,8 @@ package com.example.Warehouse.security.oauth.user;
 
 import java.util.Map;
 
-import com.example.Warehouse.entities.AuthProvider;
-import com.example.Warehouse.exceptions.OAuth2AuthenticationProcessingException;
+import com.example.Warehouse.entities.accountService.AuthProvider;
+import com.example.Warehouse.exceptions.accountService.OAuth2AuthenticationProcessingException;
 
 public class OAuth2UserInfoFactory {
 

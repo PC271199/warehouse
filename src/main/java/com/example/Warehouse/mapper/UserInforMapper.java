@@ -3,8 +3,8 @@ package com.example.Warehouse.mapper;
 
 import org.mapstruct.Mapper;
 
-import com.example.Warehouse.dtos.UserInforDto;
-import com.example.Warehouse.entities.UserInfor;
+import com.example.Warehouse.dtos.accountService.UserInforDto;
+import com.example.Warehouse.entities.accountService.UserInfor;
 
 
 

@@ -5,7 +5,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-import com.example.Warehouse.entities.Account;
+import com.example.Warehouse.entities.accountService.Account;
 
 import java.util.ArrayList;
 import java.util.Collection;

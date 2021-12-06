@@ -5,16 +5,38 @@ spring:
 #    config.import: optional:configserver:http://localhost:8088
     config.import: optional:configserver:${CONFIGSERVER_URL} #for production
     mail:
-       host: ${host}
-       port: ${port}
-       username: ${usernameMail}
-       password: ${passwordMail}
-       properties:
-             mail:
-               smtp:
-                 auth: true
-                 starttls:
-                    enable: true
+#        host: smtp.gmail.com
+        host: ${host} # for production
+#        port: 587
+        port: ${port} # for production
+#        username: phuoccong99@gmail.com
+        username: ${usernameMail} # for production
+#        password: hsovbgfxyapejfmx
+        password: ${passwordMail} # for production
+        properties:
+            mail:
+            smtp:
+                auth: true
+                starttls:
+                enable: true
+    servlet:
+        multipart:
+            max-file-size: 2MB
+            max-request-size: 2MB        
 mail:
-     smtp:
-         debug: true
+    smtp:
+        debug: true
+#    mail:
+#       host: ${host}
+#       port: ${port}
+#       username: ${usernameMail}
+#       password: ${passwordMail}
+#       properties:
+#             mail:
+#               smtp:
+#                 auth: true
+#                 starttls:
+#                    enable: true
+#mail:
+#     smtp:
+#         debug: true

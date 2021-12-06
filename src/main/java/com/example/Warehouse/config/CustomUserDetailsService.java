@@ -12,10 +12,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.Warehouse.entities.Account;
-import com.example.Warehouse.entities.Role;
-import com.example.Warehouse.exceptions.ResourceNotFoundException;
-import com.example.Warehouse.repositories.AccountRepository;
+import com.example.Warehouse.entities.accountService.Account;
+import com.example.Warehouse.entities.accountService.Role;
+import com.example.Warehouse.exceptions.accountService.ResourceNotFoundException;
+import com.example.Warehouse.repositories.accountService.AccountRepository;
 import com.example.Warehouse.security.UserPrincipal;
 
 /**

@@ -2,11 +2,8 @@ package com.example.Warehouse.mapper;
 
 import java.util.List;
 
-
-
-
-import com.example.Warehouse.dtos.AccountDto;
-import com.example.Warehouse.entities.Account;
+import com.example.Warehouse.dtos.accountService.AccountDto;
+import com.example.Warehouse.entities.accountService.Account;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
