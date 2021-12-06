@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.example.Warehouse.config.JwtTokenUtil;
-import com.example.Warehouse.exceptions.BadRequestException;
+import com.example.Warehouse.exceptions.accountService.BadRequestException;
 import com.example.Warehouse.util.CookieUtils;
 
 import javax.servlet.ServletException;

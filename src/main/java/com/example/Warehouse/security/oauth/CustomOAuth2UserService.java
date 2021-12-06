@@ -1,18 +1,18 @@
 package com.example.Warehouse.security.oauth;
 
 import com.example.Warehouse.config.JwtTokenUtil;
-import com.example.Warehouse.entities.Account;
-import com.example.Warehouse.entities.AuthProvider;
-import com.example.Warehouse.entities.Permission;
-import com.example.Warehouse.entities.Role;
-import com.example.Warehouse.entities.UserInfor;
-import com.example.Warehouse.entities.VerificationToken;
-import com.example.Warehouse.exceptions.OAuth2AuthenticationProcessingException;
+import com.example.Warehouse.entities.accountService.Account;
+import com.example.Warehouse.entities.accountService.AuthProvider;
+import com.example.Warehouse.entities.accountService.Permission;
+import com.example.Warehouse.entities.accountService.Role;
+import com.example.Warehouse.entities.accountService.UserInfor;
+import com.example.Warehouse.entities.accountService.VerificationToken;
+import com.example.Warehouse.exceptions.accountService.OAuth2AuthenticationProcessingException;
 import com.example.Warehouse.pojo.Mail;
-import com.example.Warehouse.repositories.PermissionRepository;
-import com.example.Warehouse.repositories.RoleRepository;
-import com.example.Warehouse.repositories.VerificationRepository;
-import com.example.Warehouse.repositories.AccountRepository;
+import com.example.Warehouse.repositories.accountService.AccountRepository;
+import com.example.Warehouse.repositories.accountService.PermissionRepository;
+import com.example.Warehouse.repositories.accountService.RoleRepository;
+import com.example.Warehouse.repositories.accountService.VerificationRepository;
 import com.example.Warehouse.security.UserPrincipal;
 import com.example.Warehouse.security.oauth.user.OAuth2UserInfo;
 import com.example.Warehouse.security.oauth.user.OAuth2UserInfoFactory;
@@ -123,6 +123,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 		account.setPermissions(permissions);
 		account.setProvider(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()));
 		account.setEmail(oAuth2UserInfo.getEmail());
+		account.setEnabled(true);
 		String verifyToken = UUID.randomUUID().toString();
 		VerificationToken verificationToken=createVerificationToken(verifyToken);
 		verificationToken.setAccount(account);

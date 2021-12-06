@@ -21,8 +21,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import com.example.Warehouse.entities.Account;
-import com.example.Warehouse.entities.Permission;
+import com.example.Warehouse.entities.accountService.Account;
+import com.example.Warehouse.entities.accountService.Permission;
 import com.example.Warehouse.security.UserPrincipal;
 import com.example.Warehouse.services.AccountService;
 
@@ -119,7 +119,7 @@ public class JwtTokenUtil implements Serializable {
                 .setSubject(authentication.getName())
                 .claim("roles", authorities)
 				.claim("id", (userPrincipal.getId()))
-				.claim("enabled", userPrincipal)
+//				.claim("enabled", userPrincipal)
 				.claim("permissions", permissions)
                 .setIssuedAt(new Date())
                 .setExpiration(expiryDate)

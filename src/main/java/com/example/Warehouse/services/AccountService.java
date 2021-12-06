@@ -16,28 +16,28 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.example.Warehouse.dtos.AccountDtoAdmin;
-import com.example.Warehouse.dtos.AccountEditDto;
-import com.example.Warehouse.dtos.PasswordDto;
-import com.example.Warehouse.entities.Account;
-import com.example.Warehouse.entities.AuthProvider;
-import com.example.Warehouse.entities.Permission;
-import com.example.Warehouse.entities.Role;
-import com.example.Warehouse.entities.UserInfor;
-import com.example.Warehouse.entities.VerificationToken;
-import com.example.Warehouse.exceptions.AccountIsExistsException;
-import com.example.Warehouse.exceptions.AccountNotFoundException;
-import com.example.Warehouse.exceptions.EmptyException;
-import com.example.Warehouse.exceptions.ImportFailException;
-import com.example.Warehouse.exceptions.PasswordIsNotMatchException;
-import com.example.Warehouse.exceptions.TokenIsExpireException;
+import com.example.Warehouse.dtos.accountService.AccountDtoAdmin;
+import com.example.Warehouse.dtos.accountService.AccountEditDto;
+import com.example.Warehouse.dtos.accountService.PasswordDto;
+import com.example.Warehouse.entities.accountService.Account;
+import com.example.Warehouse.entities.accountService.AuthProvider;
+import com.example.Warehouse.entities.accountService.Permission;
+import com.example.Warehouse.entities.accountService.Role;
+import com.example.Warehouse.entities.accountService.UserInfor;
+import com.example.Warehouse.entities.accountService.VerificationToken;
+import com.example.Warehouse.exceptions.accountService.AccountIsExistsException;
+import com.example.Warehouse.exceptions.accountService.AccountNotFoundException;
+import com.example.Warehouse.exceptions.accountService.EmptyException;
+import com.example.Warehouse.exceptions.accountService.ImportFailException;
+import com.example.Warehouse.exceptions.accountService.PasswordIsNotMatchException;
+import com.example.Warehouse.exceptions.accountService.TokenIsExpireException;
 import com.example.Warehouse.mapper.AccountAdminMapper;
 import com.example.Warehouse.pojo.Mail;
-import com.example.Warehouse.repositories.AccountRepository;
-import com.example.Warehouse.repositories.PermissionRepository;
-import com.example.Warehouse.repositories.RoleRepository;
-import com.example.Warehouse.repositories.UserRepository;
-import com.example.Warehouse.repositories.VerificationRepository;
+import com.example.Warehouse.repositories.accountService.AccountRepository;
+import com.example.Warehouse.repositories.accountService.PermissionRepository;
+import com.example.Warehouse.repositories.accountService.RoleRepository;
+import com.example.Warehouse.repositories.accountService.UserRepository;
+import com.example.Warehouse.repositories.accountService.VerificationRepository;
 import com.example.Warehouse.util.PasswordUtil;
 
 @Service
@@ -73,12 +73,13 @@ public class AccountService {
 		if (result.size() > 0) {
 			return result;
 		} else {
-			throw new EmptyException();
+//			throw new EmptyException();
+			return result;
 		}
 	}
 
 	public Page<AccountDtoAdmin> getAllByPage(int pageIndex) {
-		Page<Account> result = accRepo.findAll(PageRequest.of(pageIndex, 5));
+		Page<Account> result = accRepo.findAll(PageRequest.of(pageIndex, 10));
 		Page<AccountDtoAdmin> resultDto = result.map(account -> {
 			AccountDtoAdmin accountDtoAdmin = accAdminMap.toAccountDtoAdmin(account);
 			return accountDtoAdmin;
@@ -107,7 +108,9 @@ public class AccountService {
 			throw new AccountNotFoundException("");
 		}
 	}
-
+	public long countAll() {
+		return accRepo.count();
+	}
 	public Account getByUserName(String username) {
 		Optional<Account> account = this.accRepo.findByEmail(username);
 		if (account.isPresent()) {
@@ -124,8 +127,8 @@ public class AccountService {
 		}
 		account.setProvider(AuthProvider.local);
 		account.getUserinfor().setAccount(account);
-		System.out.println(account.getPassword());
 		account.setPassword(encoder.encode(account.getPassword()));
+		account.setEnabled(true);
 		accRepo.save(account);
 		return account;
 	}
@@ -174,18 +177,26 @@ public class AccountService {
 	}
 
 	public Account updateAccount(Account account) {
-		Optional<Account> oldaccount = this.accRepo.findById(account.getId());
+		Optional<Account> oldaccount = this.accRepo.findByEmail(account.getEmail());
 		if (!oldaccount.isPresent()) {
-			throw new AccountNotFoundException(account.getId());
-		}
-		Optional<Account> existAccount = this.accRepo.findByEmail(account.getEmail());
-		if (existAccount.isPresent() && existAccount.get().getId() != account.getId()) {
-			throw new AccountNotFoundException(account.getId());
+			throw new AccountNotFoundException(account.getEmail());
 		}
 		Account thisaccount = oldaccount.get();
-		Account result = this.changeAccount(thisaccount, account);
-		accRepo.save(result);
-		return result;
+		thisaccount.setRole(account.getRole());
+		thisaccount.setPermissions(account.getPermissions());
+//		Account result = this.changeAccount(thisaccount, account);
+		accRepo.save(thisaccount);
+		return thisaccount;
+	}
+	
+	public void toggleEnabledAccount(int accountId) {
+		Optional<Account> oldaccount = this.accRepo.findById(accountId);
+		if (!oldaccount.isPresent()) {
+			throw new AccountNotFoundException(accountId);
+		}
+		Account thisaccount = oldaccount.get();
+		thisaccount.setEnabled(!thisaccount.isEnabled());
+		accRepo.save(thisaccount);
 	}
 
 	public void deleteAccount(int accountId) {
@@ -213,18 +224,18 @@ public class AccountService {
 		this.accRepo.save(accountEntityDB);
 	}
 
-	public void changePassWordInitial(PasswordDto passwordDto) {
-		List<Account> oldaccount = this.accRepo.findByCodeId(passwordDto.getCodeId());
-		if (oldaccount.size() == 0) {
-			throw new AccountNotFoundException("");
-		}
-		Account accountEntityDB = oldaccount.get(0);
-		if (!passwordDto.getNewPassword().equals(passwordDto.getConfirmPassword())) {
-			throw new PasswordIsNotMatchException();
-		}
-		accountEntityDB.setPassword(encoder.encode(passwordDto.getNewPassword()));
-		this.accRepo.save(accountEntityDB);
-	}
+//	public void changePassWordInitial(PasswordDto passwordDto) {
+//		List<Account> oldaccount = this.accRepo.findByCodeId(passwordDto.getCodeId());
+//		if (oldaccount.size() == 0) {
+//			throw new AccountNotFoundException("");
+//		}
+//		Account accountEntityDB = oldaccount.get(0);
+//		if (!passwordDto.getNewPassword().equals(passwordDto.getConfirmPassword())) {
+//			throw new PasswordIsNotMatchException();
+//		}
+//		accountEntityDB.setPassword(encoder.encode(passwordDto.getNewPassword()));
+//		this.accRepo.save(accountEntityDB);
+//	}
 
 	public void importAccount(List<Account> accounts) {
 		for (Account account : accounts) {
@@ -292,5 +303,14 @@ public class AccountService {
 		} else {
 			throw new AccountNotFoundException();
 		}
+	}
+	public boolean checkaction(Set<Permission> permissions, String activity) {
+		boolean flag = false;
+		for (Permission permission : permissions) {
+			if (permission.getActname().contains(activity)) {
+				flag = true;
+			}
+		}
+		return flag == true ? true : false;
 	}
 }

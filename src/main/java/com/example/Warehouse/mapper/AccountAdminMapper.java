@@ -6,8 +6,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.data.domain.Page;
 
-import com.example.Warehouse.dtos.AccountDtoAdmin;
-import com.example.Warehouse.entities.Account;
+import com.example.Warehouse.dtos.accountService.AccountDtoAdmin;
+import com.example.Warehouse.entities.accountService.Account;
 
 @Mapper(componentModel = "spring", uses = {UserInforMapper.class})
 public interface AccountAdminMapper {
