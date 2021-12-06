@@ -1,18 +1,39 @@
+JWT_SECRET: ${JWT_SECRET}
 spring:
-    profiles:
-      active: prod
     application.name: warehouse-service
-#    config.import: optional:configserver:http://localhost:8088
-    config.import: optional:configserver:${CONFIGSERVER_URL} #for production
+    datasource:
+        password: ${password}
+        platform: postgres
+        url: ${URL}
+        username: ${username}
+    jpa:
+        database: POSTGRESQL
+        generate-ddl: true
+        hibernate:
+            ddl-auto: update
+        properties:
+            hibernate:
+                dialect: org.hibernate.dialect.PostgreSQLDialect
+                jdbc:
+                    lob:
+                        non_contextual_creation: true
+        show-sql: true
+    security:
+        oauth2:
+            client:
+                registration:
+                    google:
+                        clientId: ${clientId}
+                        clientSecret: ${clientSecret}
+                        redirectUri: ${redirectUri}
+                        scope: 
+                          - email
+                          - profile
     mail:
-#        host: smtp.gmail.com
-        host: ${host} # for production
-#        port: 587
-        port: ${port} # for production
-#        username: phuoccong99@gmail.com
-        username: ${usernameMail} # for production
-#        password: hsovbgfxyapejfmx
-        password: ${passwordMail} # for production
+        host: ${host}
+        port: ${port}
+        username: ${usernameMail}
+        password: ${passwordMail}
         properties:
             mail:
             smtp:
@@ -22,21 +43,7 @@ spring:
     servlet:
         multipart:
             max-file-size: 2MB
-            max-request-size: 2MB        
+            max-request-size: 2MB
 mail:
     smtp:
         debug: true
-#    mail:
-#       host: ${host}
-#       port: ${port}
-#       username: ${usernameMail}
-#       password: ${passwordMail}
-#       properties:
-#             mail:
-#               smtp:
-#                 auth: true
-#                 starttls:
-#                    enable: true
-#mail:
-#     smtp:
-#         debug: true
