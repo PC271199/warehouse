@@ -18,8 +18,8 @@ public class MailConfiguration {
     @Autowired
     private Environment env;
     
-    @Autowired
-    private GlobalConfig globalConfig;
+//    @Autowired for configserver
+//    private GlobalConfig globalConfig;
     
     @Value("${spring.mail.host}")
     private String host;
