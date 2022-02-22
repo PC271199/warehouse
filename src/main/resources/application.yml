@@ -1,11 +1,11 @@
-JWT_SECRET: ${JWT_SECRET}
+JWT_SECRET: 926D96C90030DD58429D2751AC1BDBBC
 spring:
     application.name: warehouse-service
     datasource:
-        password: ${password}
+        password: cong123
         platform: postgres
-        url: ${URL}
-        username: ${username}
+        url: jdbc:postgresql://localhost:5432/warehouse
+        username: postgres
     jpa:
         database: POSTGRESQL
         generate-ddl: true
@@ -23,27 +23,28 @@ spring:
             client:
                 registration:
                     google:
-                        clientId: ${clientId}
-                        clientSecret: ${clientSecret}
-                        redirectUri: ${redirectUri}
+                        clientId: 703736459029-fo1u2s6vo2heu7u5j2pj6apse8g892bp.apps.googleusercontent.com
+                        clientSecret: MFu86V0tfisyEq_fZv0qpJrK
+                        redirectUri: http://localhost:8080/oauth2/callback/google
                         scope: 
                           - email
                           - profile
     mail:
-        host: ${host}
-        port: ${port}
-        username: ${usernameMail}
-        password: ${passwordMail}
+        host: smtp.gmail.com
+        port: 587
+        username: phuoccong99@gmail.com
+        password: hsovbgfxyapejfmx
         properties:
             mail:
             smtp:
                 auth: true
                 starttls:
                 enable: true
-    servlet:
-        multipart:
-            max-file-size: 2MB
-            max-request-size: 2MB
 mail:
     smtp:
-        debug: true 
+        debug: true
+paypal:
+    mode: sandbox
+    client:
+        app: AecpgrgDjcUQl1o2QmYUv3qD0NfQ4jZSl-5EL22G2SkkYASundHJkhz4UMoS7JCBos67d4pfKymT8rO8
+        secret: EGy4Yh3y8glUkUGuuL2FHP2Nj2oGzCzZEu-a4dkw61BZU41KaK_R5KDSGsA-Yx_fI7jX6CHBNSu2k3Bl                       
