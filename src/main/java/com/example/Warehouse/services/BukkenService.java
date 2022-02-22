@@ -1059,7 +1059,7 @@ public class BukkenService {
 		bukkenRepo.save(thisBukken);
 		Optional<InterestedBukken> thisInterestedBukken = interestedBukkenRepo
 				.findByAccountIdBukkenId(thisBukken.getId(), account.getId());
-		if (thisInterestedBukken.isEmpty()) {
+		if (!thisInterestedBukken.isPresent()) {
 			InterestedBukken interestedBukken = new InterestedBukken();
 			interestedBukken.setBukken(thisBukken);
 			interestedBukken.setAccount(account);
