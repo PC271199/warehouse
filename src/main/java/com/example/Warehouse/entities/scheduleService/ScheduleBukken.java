@@ -18,9 +18,14 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.LazyToOne;
+import org.hibernate.annotations.LazyToOneOption;
+
 import com.example.Warehouse.entities.accountService.Account;
 import com.example.Warehouse.entities.bukkenService.Bukken;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Entity
 @Table(name = "schedulebukken", schema = "public")
 public class ScheduleBukken {
@@ -46,15 +51,12 @@ public class ScheduleBukken {
 	
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "bukken_id")
- 	@JsonIgnore
+	@JsonIgnore
  	private Bukken bukken;
 	
-	@OneToMany(fetch = FetchType.EAGER,mappedBy = "schedulebukken",cascade = CascadeType.ALL)
+	@OneToMany(fetch = FetchType.LAZY,mappedBy = "schedulebukken",cascade = CascadeType.ALL)
+	@JsonIgnore
 	private Set<ScheduleBukkenUser> scheduleBukkenUserList;
-	
-	@OneToMany(fetch = FetchType.EAGER,mappedBy = "schedulebukken",cascade = CascadeType.ALL)
-	private Set<EventSchedule> eventScheduleList;
-	
 	
 	private Date create_At;
 
@@ -161,20 +163,5 @@ public class ScheduleBukken {
 		this.update_At = update_At;
 	}
 
-	public Set<ScheduleBukkenUser> getScheduleWarehouseUserList() {
-		return scheduleBukkenUserList;
-	}
-
-	public void setScheduleWarehouseUserList(Set<ScheduleBukkenUser> scheduleBukkenUserList) {
-		this.scheduleBukkenUserList = scheduleBukkenUserList;
-	}
-
-	public Set<EventSchedule> getEventScheduleList() {
-		return eventScheduleList;
-	}
-
-	public void setEventScheduleList(Set<EventSchedule> eventScheduleList) {
-		this.eventScheduleList = eventScheduleList;
-	}
 	
 }

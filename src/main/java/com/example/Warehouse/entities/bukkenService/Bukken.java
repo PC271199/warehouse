@@ -28,6 +28,7 @@ import com.example.Warehouse.entities.accountService.UserInfor;
 import com.example.Warehouse.entities.fileService.File;
 import com.example.Warehouse.entities.scheduleService.ScheduleBukken;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.sun.istack.Nullable;
 
 @Entity
@@ -51,11 +52,28 @@ public class Bukken {
 
 	private int numberOfFloors;
 
+	private Date deliveryDate;
+
 	private String imgURL;
+
+	@Column(nullable = true, columnDefinition = "int default 0")
+	private int countLike = 0;
+
+	@Column(nullable = true, columnDefinition = "int default 0")
+	private int countVisited = 0;
+	
+	@Column(nullable = true, columnDefinition = "int default 0")
+	private int countSearch = 0;
 
 	@Enumerated(EnumType.STRING)
 	private BukkenStatus status;
 
+	@Column(nullable = true, columnDefinition = "boolean default false")
+	private boolean configured;
+	
+	@Column(nullable = true, columnDefinition = "boolean default false")
+	private boolean vr;
+	
 	private Date create_At;
 
 	private Date update_At;
@@ -66,22 +84,34 @@ public class Bukken {
 //	@JsonIgnore
 //	private Set<Account> accounts;
 
-	@ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-	@JoinTable(name = "account_bukken", joinColumns = @JoinColumn(name = "bukken_id"), inverseJoinColumns = @JoinColumn(name = "account_id"))
-	@JsonIgnore
-	private Set<Account> accounts;
+//	@ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+//	@JoinTable(name = "account_bukken", joinColumns = @JoinColumn(name = "bukken_id"), inverseJoinColumns = @JoinColumn(name = "account_id"))
+//	@JsonIgnore
+//	private Set<Account> accounts;
+
+	@ManyToOne(optional = true, fetch = FetchType.EAGER)
+	@JoinColumn(name = "account_id")
+	private Account account;
 
 	@ManyToOne(optional = true, fetch = FetchType.EAGER)
 	@JoinColumn(name = "station_id")
 	private Station station;
 
 	// refering side has mappedBy att
-	@OneToOne(mappedBy = "bukken", cascade = CascadeType.ALL)
+	@OneToOne(mappedBy = "bukken", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private ScheduleBukken scheduleBukken;
 
-	@OneToMany(fetch = FetchType.LAZY,mappedBy = "bukken",cascade = CascadeType.ALL)
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "bukken", cascade = CascadeType.ALL)
 	@JsonIgnore
 	private Set<File> files;
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "bukken", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private Set<Tour> tours;
+
+	@OneToMany(fetch = FetchType.LAZY,mappedBy = "bukken", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private Set<InterestedBukken> interestedBukkens;
 	
 	@PrePersist
 	protected void onCreate() {
@@ -162,12 +192,12 @@ public class Bukken {
 		this.update_At = update_At;
 	}
 
-	public Set<Account> getAccounts() {
-		return accounts;
+	public Account getAccount() {
+		return account;
 	}
 
-	public void setAccounts(Set<Account> accounts) {
-		this.accounts = accounts;
+	public void setAccount(Account account) {
+		this.account = account;
 	}
 
 	public int getNumberOfFloors() {
@@ -217,7 +247,69 @@ public class Bukken {
 	public void setFiles(Set<File> files) {
 		this.files = files;
 	}
-	
-	
+
+	public Date getDeliveryDate() {
+		return deliveryDate;
+	}
+
+	public void setDeliveryDate(Date deliveryDate) {
+		this.deliveryDate = deliveryDate;
+	}
+
+	public Set<Tour> getTours() {
+		return tours;
+	}
+
+	public void setTours(Set<Tour> tours) {
+		this.tours = tours;
+	}
+
+	public int getCountLike() {
+		return countLike;
+	}
+
+	public void setCountLike(int countLike) {
+		this.countLike = countLike;
+	}
+
+	public int getCountVisited() {
+		return countVisited;
+	}
+
+	public void setCountVisited(int countVisited) {
+		this.countVisited = countVisited;
+	}
+
+	public Set<InterestedBukken> getInterestedBukkens() {
+		return interestedBukkens;
+	}
+
+	public void setInterestedBukkens(Set<InterestedBukken> interestedBukkens) {
+		this.interestedBukkens = interestedBukkens;
+	}
+
+	public int getCountSearch() {
+		return countSearch;
+	}
+
+	public void setCountSearch(int countSearch) {
+		this.countSearch = countSearch;
+	}
+
+	public boolean isConfigured() {
+		return configured;
+	}
+
+	public void setConfigured(boolean configured) {
+		this.configured = configured;
+	}
+
+	public boolean isVr() {
+		return vr;
+	}
+
+	public void setVr(boolean vr) {
+		this.vr = vr;
+	}
 
 }

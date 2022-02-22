@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.Warehouse.dtos.FileResponse;
 import com.example.Warehouse.entities.bukkenService.Bukken;
 import com.example.Warehouse.entities.fileService.File;
+import com.example.Warehouse.exceptions.common.NullException;
 import com.example.Warehouse.repositories.bukkenService.BukkenRepository;
 import com.example.Warehouse.repositories.systemService.FileRepository;
 import org.springframework.util.StringUtils;
@@ -33,6 +34,12 @@ public class FileService {
         return fileRepo.save(result);
     }
     
+    public File storeImage(MultipartFile file) throws IOException {
+        String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+        File result = new File(fileName, file.getContentType(), file.getBytes());
+        return fileRepo.save(result);
+    }
+    
     public File findById(String id) {
     	Optional<File> optionalFile= fileRepo.findById(id);
     	if (optionalFile.isPresent()) {
@@ -40,6 +47,16 @@ public class FileService {
     	}
     	else {
     		return null;
+    	}
+    }
+    
+    public void deleteById(String id) {
+    	Optional<File> optionalFile= fileRepo.findById(id);
+    	if (optionalFile.isPresent()) {
+    		fileRepo.deleteById(id);
+    	}
+    	else {
+    		throw new NullException();
     	}
     }
     

@@ -1,17 +1,25 @@
 package com.example.Warehouse.services;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,12 +33,15 @@ import com.example.Warehouse.entities.accountService.Permission;
 import com.example.Warehouse.entities.accountService.Role;
 import com.example.Warehouse.entities.accountService.UserInfor;
 import com.example.Warehouse.entities.accountService.VerificationToken;
+import com.example.Warehouse.entities.bukkenService.Bukken;
+import com.example.Warehouse.entities.bukkenService.InterestedBukken;
 import com.example.Warehouse.exceptions.accountService.AccountIsExistsException;
 import com.example.Warehouse.exceptions.accountService.AccountNotFoundException;
 import com.example.Warehouse.exceptions.accountService.EmptyException;
 import com.example.Warehouse.exceptions.accountService.ImportFailException;
 import com.example.Warehouse.exceptions.accountService.PasswordIsNotMatchException;
 import com.example.Warehouse.exceptions.accountService.TokenIsExpireException;
+import com.example.Warehouse.exceptions.common.NullException;
 import com.example.Warehouse.mapper.AccountAdminMapper;
 import com.example.Warehouse.pojo.Mail;
 import com.example.Warehouse.repositories.accountService.AccountRepository;
@@ -59,7 +70,11 @@ public class AccountService {
 	private VerificationRepository verifyRepo;
 	@Autowired
 	MailServiceImpl mailServiceImpl;
-	
+
+	public void saveAccount(Account account) {
+		accRepo.save(account);
+	}
+
 	public Account changeAccount(Account oldaccount, Account newaccount) {
 		oldaccount.getUserinfor().setFullname(newaccount.getUserinfor().getFullname());
 		oldaccount.getUserinfor().setAddress(newaccount.getUserinfor().getAddress());
@@ -108,9 +123,11 @@ public class AccountService {
 			throw new AccountNotFoundException("");
 		}
 	}
+
 	public long countAll() {
 		return accRepo.count();
 	}
+
 	public Account getByUserName(String username) {
 		Optional<Account> account = this.accRepo.findByEmail(username);
 		if (account.isPresent()) {
@@ -155,7 +172,7 @@ public class AccountService {
 		String codeId = PasswordUtil.generatePswd(40, 50, 10, 30, 0);
 		account.setCodeId(codeId);
 		String verifyToken = UUID.randomUUID().toString();
-		VerificationToken verificationToken=createVerificationToken(verifyToken);
+		VerificationToken verificationToken = createVerificationToken(verifyToken);
 		verificationToken.setAccount(account);
 		account.setVerificationToken(verificationToken);
 		Account thisaccount = accRepo.save(account);
@@ -163,9 +180,8 @@ public class AccountService {
 
 		mail.setMailFrom(MAIL_FROM);
 		mail.setMailTo(account.getEmail());
-		mail.setMailContent(
-				"Click the following link to complete your registration" + "\n"
-						+ "http://localhost:3000/verifyAccount/" + verifyToken);
+		mail.setMailContent("Click the following link to complete your registration" + "\n"
+				+ "http://localhost:3000/verifyAccount/" + verifyToken);
 
 		try {
 			MailService mailService = (MailService) mailServiceImpl;
@@ -188,7 +204,7 @@ public class AccountService {
 		accRepo.save(thisaccount);
 		return thisaccount;
 	}
-	
+
 	public void toggleEnabledAccount(int accountId) {
 		Optional<Account> oldaccount = this.accRepo.findById(accountId);
 		if (!oldaccount.isPresent()) {
@@ -261,9 +277,26 @@ public class AccountService {
 		accountEntityDB.getUserinfor().setFullname(accountEditDto.getFullname());
 		accountEntityDB.getUserinfor().setAddress(accountEditDto.getAddress());
 		accountEntityDB.getUserinfor().setDateOfBirth(accountEditDto.getDateOfBirth());
-		accountEntityDB.getUserinfor().setCmnd(accountEditDto.getCmnd());
+		accountEntityDB.getUserinfor().setFirstname(accountEditDto.getFirstname());
+		accountEntityDB.getUserinfor().setLastname(accountEditDto.getLastname());
+		accountEntityDB.getUserinfor().setPhonenumber(accountEditDto.getPhonenumber());
+		accountEntityDB.getUserinfor().setCompanyname(accountEditDto.getCompanyname());
+		accountEntityDB.getUserinfor().setProvincecode(accountEditDto.getProvincecode());
+		accountEntityDB.getUserinfor().setExp(accountEditDto.getExp());
+		accountEntityDB.getUserinfor().setAdddetail(accountEditDto.getAdddetail());
 		Account result = accRepo.save(accountEntityDB);
 		return result;
+	}
+
+	public Account updateImgAva(String imgURL) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Optional<Account> thisAccount = accRepo.findByEmail(authentication.getName());
+		if (thisAccount.isPresent() == false) {
+			throw new NullException();
+		}
+		Account accountEntity = thisAccount.get();
+		accountEntity.getUserinfor().setImgURL(imgURL);
+		return accRepo.save(accountEntity);
 	}
 
 	public Account getAccount(String verificationToken) {
@@ -274,29 +307,32 @@ public class AccountService {
 	public VerificationToken getVerificationToken(String VerificationToken) {
 		return verifyRepo.findByToken(VerificationToken).get();
 	}
+
 	private Date calculateExpiryDate(int expiryTimeInMinutes) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(new Timestamp(cal.getTime().getTime()));
-        cal.add(Calendar.MINUTE, expiryTimeInMinutes);
-        return new Date(cal.getTime().getTime());
-    }
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(new Timestamp(cal.getTime().getTime()));
+		cal.add(Calendar.MINUTE, expiryTimeInMinutes);
+		return new Date(cal.getTime().getTime());
+	}
+
 	public VerificationToken createVerificationToken(String token) {
 		VerificationToken myToken = new VerificationToken(token);
 		myToken.setExpiryDate(calculateExpiryDate(5));
 		return myToken;
 	}
+
 	public Account verifyAccount(String token) {
 		Optional<VerificationToken> myToken = verifyRepo.findByToken(token);
 		if (!myToken.isPresent()) {
 			throw new AccountNotFoundException();
 		}
 		Account result = (myToken.get().getAccount());
-		
-		if (result!=null) {
+
+		if (result != null) {
 			Calendar cal = Calendar.getInstance();
-		    if ((myToken.get().getExpiryDate().getTime() - cal.getTime().getTime()) <= 0) {
-		    	throw new TokenIsExpireException();
-		    }
+			if ((myToken.get().getExpiryDate().getTime() - cal.getTime().getTime()) <= 0) {
+				throw new TokenIsExpireException();
+			}
 			result.setEnabled(true);
 			accRepo.save(result);
 			return result;
@@ -304,6 +340,7 @@ public class AccountService {
 			throw new AccountNotFoundException();
 		}
 	}
+
 	public boolean checkaction(Set<Permission> permissions, String activity) {
 		boolean flag = false;
 		for (Permission permission : permissions) {
@@ -312,5 +349,88 @@ public class AccountService {
 			}
 		}
 		return flag == true ? true : false;
+	}
+
+	// list user id have the most similarity
+	public List<Integer> getUsersSimilarity() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Optional<Account> optionalAccount = accRepo.findByEmail(authentication.getName());
+		if (optionalAccount.isPresent() == false) {
+			throw new NullException();
+		}
+		Account thisAccount = optionalAccount.get();
+
+		List<Account> accountList = accRepo.findRoleUser_NotMine(thisAccount.getId());
+		Map<Integer, Integer> myMatrix = thisAccount.getMatrix();
+		Map<Integer, Integer> resultMatrix = new HashMap<Integer, Integer>();
+		for (Account account : accountList) {
+			if (account.getMatrix() != null && account.getMatrix().size() != 0) {
+				Map<Integer, Integer> thisMatrix = account.getMatrix();
+				int sum = 0;
+				for (int key : myMatrix.keySet().stream().collect(Collectors.toList())) {
+					sum += myMatrix.get(key) * thisMatrix.get(key);
+				}
+				resultMatrix.put(account.getId(), sum);
+			}
+		}
+		LinkedHashMap<Integer, Integer> sortedMap = new LinkedHashMap<>();
+
+		resultMatrix.entrySet().stream().sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+				.forEachOrdered(x -> sortedMap.put(x.getKey(), x.getValue()));
+
+		List<Integer> firstNElementsList = sortedMap.keySet().stream().collect(Collectors.toList()).stream().limit(5)
+				.collect(Collectors.toList());
+		return firstNElementsList;
+	}
+
+	// get bukken of users similarity
+	public List<Bukken> getBukkensSimilarity(List<Integer> userIds) {
+		List<Bukken> result = new ArrayList<Bukken>();
+		for (Integer userId : userIds) {
+			Account thisAccount = getById(userId);
+			if (thisAccount.getInterestedBukkens() != null && thisAccount.getInterestedBukkens().size() > 0) {
+				List<InterestedBukken> interestedBukkens = thisAccount.getInterestedBukkens().stream()
+						.collect(Collectors.toList());
+				for (InterestedBukken interestedBukken : interestedBukkens) {
+					result.add(interestedBukken.getBukken());
+				}
+			}
+		}
+		Set<Bukken> uniqueBukkens = new HashSet<Bukken>(result);
+		List<Bukken> finalResult = new ArrayList<Bukken>(uniqueBukkens);
+		return finalResult;
+	}
+
+	// get bukken recommendation
+	public List<Bukken> getBukkensRecommendation(List<Bukken> bukkens) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Optional<Account> thisAccount = accRepo.findByEmail(authentication.getName());
+		if (thisAccount.isPresent() == false) {
+			throw new NullException();
+		}
+		Account account = thisAccount.get();
+		List<Bukken> myInterestedBukken = new ArrayList<Bukken>();
+		if (account.getInterestedBukkens() != null && account.getInterestedBukkens().size() > 0) {
+			List<InterestedBukken> interestedBukkens = account.getInterestedBukkens().stream()
+					.collect(Collectors.toList());
+			for (InterestedBukken interestedBukken : interestedBukkens) {
+				myInterestedBukken.add(interestedBukken.getBukken());
+			}
+		}
+		bukkens.removeAll(myInterestedBukken);
+		if (bukkens.size() <= 5) {
+			return bukkens;
+		} else {
+			return bukkens.stream().limit(5).collect(Collectors.toList());
+		}
+
+	}
+
+	public Map<Integer, Integer> sortMap(Map<Integer, Integer> myMatrix) {
+		List<Map.Entry<Integer, Integer>> list = new ArrayList<>(myMatrix.entrySet());
+		list.sort(Map.Entry.comparingByKey());
+		LinkedHashMap<Integer, Integer> sortedMap = new LinkedHashMap<>();
+		list.forEach(e -> sortedMap.put(e.getKey(), e.getValue()));
+		return sortedMap;
 	}
 }
