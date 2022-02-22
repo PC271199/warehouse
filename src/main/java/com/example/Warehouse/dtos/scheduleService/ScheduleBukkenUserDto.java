@@ -1,80 +1,45 @@
-package com.example.Warehouse.entities.scheduleService;
+package com.example.Warehouse.dtos.scheduleService;
 
-import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.persistence.Table;
 
 import com.example.Warehouse.entities.accountService.Account;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.example.Warehouse.entities.scheduleService.EventSchedule;
+import com.example.Warehouse.entities.scheduleService.ScheduleBukken;
+import com.example.Warehouse.entities.scheduleService.Target;
+import com.example.Warehouse.entities.scheduleService.Target2;
 
-@Entity
-@Table(name = "schedulebukkenuser", schema = "public")
-public class ScheduleBukkenUser implements Serializable {
-
-	@Id
-	@Column(name = "id")
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+public class ScheduleBukkenUserDto {
 	private int id;
 
 	private int statusId;
 
 	private String statusName;
-	
+
 	@Enumerated(EnumType.STRING)
 	private Target target;
-	
+
 	@Enumerated(EnumType.STRING)
 	private Target2 target2;
-	
-	private String note;
-	
+
 	private String bukkenName;
 	
+	private String note;
+
 	private Date create_At;
 
 	private Date update_At;
 
-	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "account_id")
 	private Account account;
 
-	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "schedulebukken_id")
 	private ScheduleBukken schedulebukken;
 
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "schedulebukkenuser", cascade = CascadeType.ALL)
-	@OrderBy("orderWish ASC")
 	private Set<EventSchedule> eventScheduleList;
 
-	@PrePersist
-	protected void onCreate() {
-		this.create_At = new Date();
-	}
-
-	@PreUpdate
-	protected void onUpdate() {
-		this.update_At = new Date();
-	}
-
-	public ScheduleBukkenUser() {
+	public ScheduleBukkenUserDto() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
@@ -174,5 +139,5 @@ public class ScheduleBukkenUser implements Serializable {
 	public void setBukkenName(String bukkenName) {
 		this.bukkenName = bukkenName;
 	}
-
+	
 }

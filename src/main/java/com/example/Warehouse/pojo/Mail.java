@@ -101,5 +101,6 @@ public class Mail {
     public void setAttachments(List < Object > attachments) {
         this.attachments = attachments;
     }
+
  
 }

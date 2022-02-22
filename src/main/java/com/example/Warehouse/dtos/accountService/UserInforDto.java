@@ -14,6 +14,23 @@ public class UserInforDto {
 	private String address;
 	private Date dateOfBirth;
 	private String cmnd;
+	private String companyname;
+
+	private String phonenumber;
+
+	private String firstname;
+
+	private String lastname;
+
+	private String provincecode;
+	
+	
+	private int exp;
+
+	private String adddetail;
+	
+	private String imgURL;
+	
 	public String getCmnd() {
 		return cmnd;
 	}
@@ -47,8 +64,72 @@ public class UserInforDto {
 		return address;
 	}
 
+	public String getCompanyname() {
+		return companyname;
+	}
+
+	public void setCompanyname(String companyname) {
+		this.companyname = companyname;
+	}
+
+	public String getPhonenumber() {
+		return phonenumber;
+	}
+
+	public void setPhonenumber(String phonenumber) {
+		this.phonenumber = phonenumber;
+	}
+
+	public String getFirstname() {
+		return firstname;
+	}
+
+	public void setFirstname(String firstname) {
+		this.firstname = firstname;
+	}
+
+	public String getLastname() {
+		return lastname;
+	}
+
+	public void setLastname(String lastname) {
+		this.lastname = lastname;
+	}
+
+	public String getProvincecode() {
+		return provincecode;
+	}
+
+	public void setProvincecode(String provincecode) {
+		this.provincecode = provincecode;
+	}
+
 	public void setAddress(String address) {
 		this.address = address;
 	}
 
+	public int getExp() {
+		return exp;
+	}
+
+	public void setExp(int exp) {
+		this.exp = exp;
+	}
+
+	public String getAdddetail() {
+		return adddetail;
+	}
+
+	public void setAdddetail(String adddetail) {
+		this.adddetail = adddetail;
+	}
+
+	public String getImgURL() {
+		return imgURL;
+	}
+
+	public void setImgURL(String imgURL) {
+		this.imgURL = imgURL;
+	}
+	
 }

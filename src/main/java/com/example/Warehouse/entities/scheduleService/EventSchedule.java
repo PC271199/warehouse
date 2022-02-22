@@ -14,6 +14,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import org.springframework.lang.Nullable;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "eventschedule", schema = "public")
@@ -22,38 +25,37 @@ public class EventSchedule {
 	@Column(name = "id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	
+
 	private Date startDate;
-	
-	private Date endDate;
-	
+
 	private String startTime;
-	
+
 	private String endTime;
-	
+
 	private boolean mon;
-	
+
 	private boolean tue;
-	
+
 	private boolean wed;
-	
+
 	private boolean thu;
-	
+
 	private boolean fri;
-	
+
 	private boolean sar;
-	
+
 	private boolean sun;
+
+	private int orderWish = 0;
 	
+	private Boolean decision;
+
 	@Enumerated(EnumType.STRING)
-    private EventStatusSchedule status;
-	
-	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "schedulebukken_id")
-	private ScheduleBukken schedulebukken;
-	
+	private EventStatusSchedule status;
+
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "schedulebukkenuser_id")
+	@JsonIgnore
 	private ScheduleBukkenUser schedulebukkenuser;
 
 	public EventSchedule() {
@@ -75,14 +77,6 @@ public class EventSchedule {
 
 	public void setStartDate(Date startDate) {
 		this.startDate = startDate;
-	}
-
-	public Date getEndDate() {
-		return endDate;
-	}
-
-	public void setEndDate(Date endDate) {
-		this.endDate = endDate;
 	}
 
 	public String getStartTime() {
@@ -157,20 +151,37 @@ public class EventSchedule {
 		this.sun = sun;
 	}
 
+	public int getOrder() {
+		return orderWish;
+	}
+
+	public void setOrder(int order) {
+		this.orderWish = order;
+	}
+
+	
+	public int getOrderWish() {
+		return orderWish;
+	}
+
+	public void setOrderWish(int orderWish) {
+		this.orderWish = orderWish;
+	}
+
+	public Boolean isDecision() {
+		return decision;
+	}
+
+	public void setDecision(Boolean decision) {
+		this.decision = decision;
+	}
+
 	public EventStatusSchedule getStatus() {
 		return status;
 	}
 
 	public void setStatus(EventStatusSchedule status) {
 		this.status = status;
-	}
-
-	public ScheduleBukken getSchedulebukken() {
-		return schedulebukken;
-	}
-
-	public void setSchedulebukken(ScheduleBukken schedulebukken) {
-		this.schedulebukken = schedulebukken;
 	}
 
 	public ScheduleBukkenUser getSchedulebukkenuser() {

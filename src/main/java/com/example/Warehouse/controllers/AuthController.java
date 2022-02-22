@@ -26,6 +26,7 @@ import com.example.Warehouse.entities.accountService.AuthProvider;
 import com.example.Warehouse.entities.accountService.Permission;
 import com.example.Warehouse.entities.accountService.Role;
 import com.example.Warehouse.entities.accountService.UserInfor;
+import com.example.Warehouse.entities.bukkenService.Bukken;
 import com.example.Warehouse.exceptions.accountService.AccountIsExistsException;
 import com.example.Warehouse.exceptions.accountService.BadRequestException;
 import com.example.Warehouse.exceptions.accountService.PasswordIsNotMatchException;
@@ -35,6 +36,7 @@ import com.example.Warehouse.repositories.accountService.AccountRepository;
 import com.example.Warehouse.repositories.accountService.PermissionRepository;
 import com.example.Warehouse.repositories.accountService.RoleRepository;
 import com.example.Warehouse.services.AccountService;
+import com.example.Warehouse.services.BukkenService;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -43,7 +45,10 @@ import javax.validation.Valid;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -64,16 +69,30 @@ public class AuthController {
 	private RegisterMapper registermap;
 	@Autowired
 	private AccountService accser;
+	@Autowired
+	private BukkenService bukkenservice;
 
 	@PostMapping("/login")
-	
+
 	public ResponseEntity<ResponseDto<Object>> authenticateUser(@Valid @RequestBody LoginDto loginRequest) {
 
 		Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
 		SecurityContextHolder.getContext().setAuthentication(authentication);
-
+		Account thisAccount = accser.getByUserName(authentication.getName());
+		System.out.println(authentication.getAuthorities().toArray()[0].toString());
+		if ("ROLE_USER".equals(authentication.getAuthorities().toArray()[0].toString())) {
+			if (thisAccount.getMatrix() == null || thisAccount.getMatrix().size() == 0) {
+				Map<Integer, Integer> matrix = new HashMap<Integer, Integer>();
+				List<Bukken> bukkenList = bukkenservice.getAll();
+				for (Bukken bukken : bukkenList) {
+					matrix.put(bukken.getId(), 0);
+				}
+				thisAccount.setMatrix(matrix);
+				accser.saveAccount(thisAccount);
+			}
+		}
 		String token = tokenProvider.createToken(authentication);
 		ResponseDto<Object> result = new ResponseDto<Object>(new AuthToken(token), HttpStatus.OK.value());
 		return new ResponseEntity<ResponseDto<Object>>(result, HttpStatus.OK);
@@ -123,7 +142,7 @@ public class AuthController {
 			throws AuthenticationException, IOException, ServletException {
 		return new ResponseEntity<Object>("OK", HttpStatus.OK);
 	}
-	
+
 	@Scheduled(fixedRate = 600000)
 	public void testmethod() {
 		System.out.println("ok");

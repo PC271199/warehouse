@@ -29,6 +29,8 @@ import com.example.Warehouse.exceptions.accountService.NoAccessRightException;
 import com.example.Warehouse.exceptions.accountService.PasswordIsNotMatchException;
 import com.example.Warehouse.exceptions.accountService.TokenIsExpireException;
 import com.example.Warehouse.exceptions.bukkenService.BukkenNotFoundException;
+import com.example.Warehouse.exceptions.bukkenService.InterestedExistException;
+import com.example.Warehouse.exceptions.common.NullException;
 
 @ControllerAdvice
 public class ExceptionController extends ResponseEntityExceptionHandler {
@@ -109,5 +111,14 @@ public class ExceptionController extends ResponseEntityExceptionHandler {
 	@ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Object> exception(MaxUploadSizeExceededException exception) {
         return new ResponseEntity<Object>("File too large!", HttpStatus.EXPECTATION_FAILED);
+    }
+	@ExceptionHandler(NullException.class)
+    public ResponseEntity<Object> exception(NullException exception) {
+        return new ResponseEntity<Object>(exception.getMessage(), HttpStatus.NOT_FOUND);
+    }
+	
+	@ExceptionHandler(InterestedExistException.class)
+    public ResponseEntity<Object> exception(InterestedExistException exception) {
+        return new ResponseEntity<Object>(exception.getMessage(), HttpStatus.NOT_FOUND);
     }
 }

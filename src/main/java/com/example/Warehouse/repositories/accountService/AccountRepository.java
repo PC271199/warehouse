@@ -19,6 +19,9 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
 
 	@Query(value = "Select * from account where role_id = :roleId", nativeQuery = true)
 	List<Account> findByRoleId(@Param("roleId") int roleId);
+	
+	@Query(value = "Select * from account where role_id = 1 and id != :accountId", nativeQuery = true)
+	List<Account> findRoleUser_NotMine(@Param("accountId") int accountId);
 
 	Optional<Account> findByEmail(String email);
 

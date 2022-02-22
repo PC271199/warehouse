@@ -42,7 +42,9 @@ import com.example.Warehouse.mapper.AccountEditDtoAdminMapper;
 import com.example.Warehouse.mapper.AccountMapper;
 import com.example.Warehouse.services.AccountService;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -63,7 +65,7 @@ public class AccountController {
 
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@RequestMapping(value = "/accounts", method = RequestMethod.GET)
-	
+
 	public ResponseEntity<ResponseDto<List<AccountDtoAdmin>>> getAccountList() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		Account thisaccount = accser.getByUserName(authentication.getName());
@@ -172,7 +174,8 @@ public class AccountController {
 	}
 
 	@RequestMapping(value = "/authenDocsign/{code}", method = RequestMethod.POST)
-	public ResponseEntity<Object> authenAndSendDocsign(HttpServletRequest request, @PathVariable String code, @RequestBody MailContractDto mailContractDto) throws Exception {
+	public ResponseEntity<Object> authenAndSendDocsign(HttpServletRequest request, @PathVariable String code,
+			@RequestBody MailContractDto mailContractDto) throws Exception {
 		// get accessToken-Docsign
 		try {
 			HttpHeaders headers = new HttpHeaders();
@@ -258,8 +261,7 @@ public class AccountController {
 					HttpMethod.POST, entity2, String.class);
 			JsonNode root2 = objectMapper.readTree(response2.getBody());
 			return new ResponseEntity<Object>(root, HttpStatus.OK);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw e;
 		}
 
@@ -326,7 +328,6 @@ public class AccountController {
 			objectRecipients.put("signers", new JSONArray(singerList));
 			object.put("recipients", objectRecipients);
 			object.put("status", "sent");
-			System.out.println(object.toString());
 			HttpEntity<String> entity = new HttpEntity<String>(object.toString(), headers);
 			// RestTemplate
 			RestTemplate restTemplate = new RestTemplate();
@@ -338,6 +339,22 @@ public class AccountController {
 		} catch (Exception e) {
 			throw e;
 		}
+	}
+
+	@RequestMapping(value = "/test/flask", method = RequestMethod.GET)
+	public ResponseEntity<Object> testApiFlask() throws JsonMappingException, JsonProcessingException {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setAccept(Arrays.asList(new MediaType[] { MediaType.APPLICATION_JSON }));
+		// Yêu cầu trả về định dạng JSON
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		RestTemplate restTemplate = new RestTemplate();
+		HttpEntity<String> entity = new HttpEntity<String>("", headers);
+		ResponseEntity<String> response = restTemplate.exchange(
+				"http://localhost:5000/api/v1/hello/{a}",
+				HttpMethod.GET, entity, String.class,1);
+//		JsonNode root = objectMapper.readTree(response.getBody());
+		System.out.println(response);
+		return new ResponseEntity<Object>(new ResponseDto<Object>("ac", HttpStatus.OK.value()), HttpStatus.OK);
 	}
 
 }

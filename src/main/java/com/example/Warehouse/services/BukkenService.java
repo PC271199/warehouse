@@ -10,33 +10,53 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import com.example.Warehouse.dtos.SearchDto;
 import com.example.Warehouse.entities.accountService.Account;
 import com.example.Warehouse.entities.bukkenService.Bukken;
 import com.example.Warehouse.entities.bukkenService.BukkenStatus;
+import com.example.Warehouse.entities.bukkenService.InterestedBukken;
 import com.example.Warehouse.entities.bukkenService.Station;
 import com.example.Warehouse.exceptions.accountService.AccountNotFoundException;
 import com.example.Warehouse.exceptions.accountService.EmptyException;
 import com.example.Warehouse.exceptions.accountService.ImportFailException;
 import com.example.Warehouse.exceptions.bukkenService.BukkenNotFoundException;
+import com.example.Warehouse.exceptions.bukkenService.InterestedExistException;
+import com.example.Warehouse.exceptions.common.NullException;
 import com.example.Warehouse.repositories.accountService.AccountRepository;
 import com.example.Warehouse.repositories.bukkenService.BukkenRepository;
+import com.example.Warehouse.repositories.bukkenService.InterestedBukkenRepository;
 import com.example.Warehouse.repositories.bukkenService.StationRepository;
 import com.mapbox.geojson.Point;
 import com.mapbox.geojson.Polygon;
@@ -55,9 +75,13 @@ public class BukkenService {
 	private AccountRepository accRepo;
 	@Autowired
 	private StationRepository stationRepo;
+	@Autowired
+	private InterestedBukkenRepository interestedBukkenRepo;
 
+	// get all bukkens
 	public List<Bukken> getAll() {
 		List<Bukken> result = bukkenRepo.findAll();
+		result.sort(Comparator.comparing(Bukken::getName));
 		if (result.size() > 0) {
 			return result;
 		} else {
@@ -65,8 +89,108 @@ public class BukkenService {
 		}
 	}
 
+	// get top 10 bukken have the mose countVisited
+	public List<Bukken> getTopVisited() {
+		List<Bukken> result = bukkenRepo.findAll();
+		result.sort(Comparator.comparingInt(Bukken::getCountVisited).reversed());
+		if (result.size() > 0) {
+			return result.stream().limit(10).collect(Collectors.toList());
+		} else {
+			return result;
+		}
+	}
+
+	// get top 10 bukken have the mose countLike
+	public List<Bukken> getTopLike() {
+		List<Bukken> result = bukkenRepo.findAll();
+		result.sort(Comparator.comparingInt(Bukken::getCountLike).reversed());
+		if (result.size() > 0) {
+			return result.stream().limit(10).collect(Collectors.toList());
+		} else {
+			return result;
+		}
+	}
+
+	// get top 10 bukken have the mose countSearch
+	public List<Bukken> getTopSearch() {
+		List<Bukken> result = bukkenRepo.findAll();
+		result.sort(Comparator.comparingInt(Bukken::getCountSearch).reversed());
+		if (result.size() > 0) {
+			return result.stream().limit(10).collect(Collectors.toList());
+		} else {
+			return result;
+		}
+	}
+
+	// get top 10 bukken have the mose countVisited by owner
+	public List<Bukken> getTopVisited_ByOwner() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Optional<Account> thisAccount = accRepo.findByEmail(authentication.getName());
+		if (thisAccount.isPresent() == false) {
+			throw new NullException();
+		}
+		Account account = thisAccount.get();
+		Set<Bukken> setBukkens = account.getBukkens();
+		List<Bukken> result = new ArrayList<>(setBukkens);
+		result.sort(Comparator.comparingInt(Bukken::getCountVisited).reversed());
+		if (result.size() > 0) {
+			return result.stream().limit(10).collect(Collectors.toList());
+		} else {
+			return result;
+		}
+	}
+
+	// get top 10 bukken have the mose countLike by owner
+	public List<Bukken> getTopLike_ByOwner() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Optional<Account> thisAccount = accRepo.findByEmail(authentication.getName());
+		if (thisAccount.isPresent() == false) {
+			throw new NullException();
+		}
+		Account account = thisAccount.get();
+		Set<Bukken> setBukkens = account.getBukkens();
+		List<Bukken> result = new ArrayList<>(setBukkens);
+		result.sort(Comparator.comparingInt(Bukken::getCountLike).reversed());
+		if (result.size() > 0) {
+			return result.stream().limit(10).collect(Collectors.toList());
+		} else {
+			return result;
+		}
+	}
+
+	// get top 10 bukken have the mose countSearch by owner
+	public List<Bukken> getTopSearch_ByOwner() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Optional<Account> thisAccount = accRepo.findByEmail(authentication.getName());
+		if (thisAccount.isPresent() == false) {
+			throw new NullException();
+		}
+		Account account = thisAccount.get();
+		Set<Bukken> setBukkens = account.getBukkens();
+		List<Bukken> result = new ArrayList<>(setBukkens);
+		result.sort(Comparator.comparingInt(Bukken::getCountSearch).reversed());
+		if (result.size() > 0) {
+			return result.stream().limit(10).collect(Collectors.toList());
+		} else {
+			return result;
+		}
+	}
+
+	// get all bukkens belong to ownerId
+	public List<Bukken> getAll_ByOwnerId(int ownerId) {
+		Optional<Account> thisAccount = accRepo.findById(ownerId);
+		if (thisAccount.isPresent() == false) {
+			throw new NullException();
+		}
+		Account thisOwner = thisAccount.get();
+		List<Bukken> result = new ArrayList<Bukken>(thisOwner.getBukkens());
+		result.sort(Comparator.comparing(Bukken::getName));
+		return result;
+	}
+
 	public Page<Bukken> getAllByPage(int pageIndex) {
-		Page<Bukken> result = bukkenRepo.findAll(PageRequest.of(pageIndex, 12));
+		Pageable pageable = PageRequest.of(pageIndex, 12, Sort.by("name"));
+		Page<Bukken> result = bukkenRepo.findAll(pageable);
 		if (result.getSize() > 0) {
 			return result;
 		} else {
@@ -74,10 +198,75 @@ public class BukkenService {
 		}
 	}
 
+	// create bukken
 	public Bukken createBukken(Bukken bukken) {
 		try {
-//			Optional<Account> thisAccount = accRepo.findById(bukken.getAccount().getId());
-//			bukken.setAccount(thisAccount.get());
+			List<Station> stationList = stationRepo.findAll();
+			BigDecimal distance = calDistance(new BigDecimal(bukken.getLatitude()),
+					new BigDecimal(bukken.getLongitude()), new BigDecimal(stationList.get(0).getLat()),
+					new BigDecimal(stationList.get(0).getLng()));
+			bukken.setStation(stationList.get(0));
+			for (int i = 1; i < stationList.size(); i++) {
+				BigDecimal temp = calDistance(new BigDecimal(bukken.getLatitude()),
+						new BigDecimal(bukken.getLongitude()), new BigDecimal(stationList.get(i).getLat()),
+						new BigDecimal(stationList.get(i).getLng()));
+				if (temp.compareTo(distance) < 0) {
+					distance = temp;
+					bukken.setStation(stationList.get(i));
+				}
+			}
+
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			if ("ROLE_OWNER".equals(authentication.getAuthorities().toArray()[0].toString())) {
+				Optional<Account> thisAccount = accRepo.findByEmail(authentication.getName());
+				if (thisAccount.isPresent() == false) {
+					throw new NullException();
+				}
+				bukken.setAccount(thisAccount.get());
+			}
+			bukkenRepo.save(bukken);
+
+			List<Account> account_users = accRepo.findByRoleId(1);
+			for (Account account : account_users) {
+				if (account.getMatrix() != null) {
+					account.getMatrix().put(bukken.getId(), 0);
+				}
+			}
+			return bukken;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	// update bukken
+	public Bukken updateBukken(Bukken bukken) {
+		try {
+			List<Station> stationList = stationRepo.findAll();
+			BigDecimal distance = calDistance(new BigDecimal(bukken.getLatitude()),
+					new BigDecimal(bukken.getLongitude()), new BigDecimal(stationList.get(0).getLat()),
+					new BigDecimal(stationList.get(0).getLng()));
+			bukken.setStation(stationList.get(0));
+			for (int i = 1; i < stationList.size(); i++) {
+				BigDecimal temp = calDistance(new BigDecimal(bukken.getLatitude()),
+						new BigDecimal(bukken.getLongitude()), new BigDecimal(stationList.get(i).getLat()),
+						new BigDecimal(stationList.get(i).getLng()));
+				if (temp.compareTo(distance) < 0) {
+					distance = temp;
+					bukken.setStation(stationList.get(i));
+				}
+			}
+			if ("CompleteLaunching".equals(bukken.getStatus())) {
+				bukken.setStatus(BukkenStatus.CompleteLaunching);
+			}
+			if ("NotCompleteLaunching".equals(bukken.getStatus())) {
+				bukken.setStatus(BukkenStatus.NotCompleteLaunching);
+			}
+			if ("CompleteNotLaunching".equals(bukken.getStatus())) {
+				bukken.setStatus(BukkenStatus.CompleteNotLaunching);
+			}
+			if ("NotCompleteNotLaunching".equals(bukken.getStatus())) {
+				bukken.setStatus(BukkenStatus.NotCompleteNotLaunching);
+			}
 			bukkenRepo.save(bukken);
 			return bukken;
 		} catch (Exception e) {
@@ -89,21 +278,46 @@ public class BukkenService {
 		return bukkenRepo.count();
 	}
 
+	// get bukken by id
 	public Bukken getById(int bukkenId) {
 		Optional<Bukken> result = bukkenRepo.findById(bukkenId);
 		if (result.isPresent()) {
-			return result.get();
+			Bukken bukkenResult = result.get();
+			return bukkenResult;
 		} else {
 			throw new BukkenNotFoundException(bukkenId);
 		}
 	}
 
+	// increase countvisited bukken by bukkenId
+	public void increaseCountVisited(int bukkenId) {
+		Optional<Bukken> result = bukkenRepo.findById(bukkenId);
+		if (result.isPresent()) {
+			Bukken bukkenResult = result.get();
+			int countTemp = bukkenResult.getCountVisited();
+			bukkenResult.setCountVisited(countTemp + 1);
+			bukkenRepo.save(bukkenResult);
+		}
+	}
+
+	// delete by bukkenId
 	public void deleteBukken(int bukkenId) {
 		Optional<Bukken> oldBukken = bukkenRepo.findById(bukkenId);
 		if (!oldBukken.isPresent()) {
 			throw new BukkenNotFoundException(bukkenId);
 		}
 		bukkenRepo.deleteById(bukkenId);
+	}
+
+	// delete matrix with key bukkenId
+	public void deleteMatrix_ByBukkenId(int bukkenId) {
+		List<Account> result = accRepo.findAll();
+		for (Account account : result) {
+			if (account.getMatrix() != null) {
+				account.getMatrix().remove(bukkenId);
+			}
+		}
+		accRepo.saveAll(result);
 	}
 
 	public void deleteAll() {
@@ -141,12 +355,16 @@ public class BukkenService {
 		List<Bukken> bukkens = bukkenRepo.findAll();
 		if (bukkens != null) {
 			for (Bukken bukken : bukkens) {
-				BigDecimal distance =calDistance(new BigDecimal(bukken.getLatitude()),new BigDecimal(bukken.getLongitude()),new BigDecimal(stations.get(0).getLat()),new BigDecimal(stations.get(0).getLng()));
+				BigDecimal distance = calDistance(new BigDecimal(bukken.getLatitude()),
+						new BigDecimal(bukken.getLongitude()), new BigDecimal(stations.get(0).getLat()),
+						new BigDecimal(stations.get(0).getLng()));
 				bukken.setStation(stations.get(0));
-				for(int i=1;i<stations.size();i++) {
-					BigDecimal temp=calDistance(new BigDecimal(bukken.getLatitude()),new BigDecimal(bukken.getLongitude()),new BigDecimal(stations.get(i).getLat()),new BigDecimal(stations.get(i).getLng()));
-					if (temp.compareTo(distance)<0) {
-						distance=temp;
+				for (int i = 1; i < stations.size(); i++) {
+					BigDecimal temp = calDistance(new BigDecimal(bukken.getLatitude()),
+							new BigDecimal(bukken.getLongitude()), new BigDecimal(stations.get(i).getLat()),
+							new BigDecimal(stations.get(i).getLng()));
+					if (temp.compareTo(distance) < 0) {
+						distance = temp;
 						bukken.setStation(stations.get(i));
 					}
 				}
@@ -154,19 +372,19 @@ public class BukkenService {
 			bukkenRepo.saveAll(bukkens);
 		}
 	}
+
 	public void triggerOwnerBukken() {
 		List<Account> accountList = findByRoleId(2);
 		List<Bukken> bukkenList = getAll();
 		Random rand = new Random();
 		for (Bukken bukken : bukkenList) {
-			Set<Account> temp = new HashSet<>();
-			temp.add(accountList.get(rand.nextInt(accountList.size())));
-			bukken.setAccounts(temp);
+			Account temp = new Account();
+			temp = accountList.get(rand.nextInt(accountList.size()));
+			bukken.setAccount(temp);
 		}
 		bukkenRepo.saveAll(bukkenList);
 	}
-	
-	
+
 	public List<Account> findByRoleId(int roleId) {
 		List<Account> result = accRepo.findByRoleId(roleId);
 		if (result.size() == 0) {
@@ -175,8 +393,14 @@ public class BukkenService {
 		return result;
 	}
 
+	// save list bukken
 	public void save(List<Bukken> bukkenList) {
 		bukkenRepo.saveAll(bukkenList);
+	}
+
+	// save bukken
+	public void save(Bukken bukken) {
+		bukkenRepo.save(bukken);
 	}
 
 	public java.math.BigDecimal calDistance(java.math.BigDecimal CenterLat, java.math.BigDecimal CenterLng,
@@ -199,15 +423,13 @@ public class BukkenService {
 			java.math.BigDecimal radius) {
 		List<Bukken> result = new ArrayList<Bukken>();
 		List<Bukken> bukkens = getAll();
-		for (Bukken bukken : bukkens) {
-			if (calDistance(CenterLat, CenterLng, new BigDecimal(bukken.getLatitude()),
-					new BigDecimal(bukken.getLongitude())).compareTo(radius) <= 0) {
-				result.add(bukken);
-			} else {
-				continue;
-			}
+		result = bukkens.stream().filter(element -> calDistance(CenterLat, CenterLng,
+				new BigDecimal(element.getLatitude()), new BigDecimal(element.getLongitude())).compareTo(radius) <= 0)
+				.collect(Collectors.toList());
+		for (Bukken bukken : result) {
+			increaseCountSearch(bukken.getId());
 		}
-		return result;
+		return bukkenRepo.saveAll(result);
 	}
 
 	public List<Bukken> getBukkensFromCircleDraws(String circleDraws) {
@@ -262,13 +484,194 @@ public class BukkenService {
 
 	}
 
+	// get bukkens by search shape
 	public List<Bukken> getBukkensBySearchShape(SearchDto searchDto) {
-		List<Bukken> circleResult = getBukkensFromCircleDraws(searchDto.getCircleDraws());
-		List<Bukken> polygonResult = getBukkensFromPolygonDraws(searchDto.getPolygonDraws(), searchDto.getPoints());
-		circleResult.addAll(polygonResult);
-		Set uniqueResult = new HashSet<>(circleResult);
-		List<Bukken> finalResult = new ArrayList<Bukken>(uniqueResult);
-		return finalResult;
+		List<Bukken> bukkens = getAll();
+		List<Bukken> circleResult = new ArrayList<Bukken>();
+		List<Bukken> polygonResult = new ArrayList<Bukken>();
+		List<Bukken> bukkensLikeName = new ArrayList<Bukken>();
+		List<Bukken> bukkensOpening = new ArrayList<Bukken>();
+		List<Bukken> bukkensComplete = new ArrayList<Bukken>();
+		List<Bukken> bukkensNotOpening = new ArrayList<Bukken>();
+		List<Bukken> bukkensNotComplete = new ArrayList<Bukken>();
+		List<Bukken> bukkensConfigured = new ArrayList<Bukken>();
+		List<Bukken> bukkensVR = new ArrayList<Bukken>();
+		List<Bukken> bukkensByMinFloor = new ArrayList<Bukken>();
+		List<Bukken> bukkensByMaxFloor = new ArrayList<Bukken>();
+		List<Bukken> bukkensByMinFee = new ArrayList<Bukken>();
+		List<Bukken> bukkensByMaxFee = new ArrayList<Bukken>();
+		List<Bukken> bukkensByMinArea = new ArrayList<Bukken>();
+		List<Bukken> bukkensByMaxArea = new ArrayList<Bukken>();
+		List<Bukken> bukkensByDeliveryDate = new ArrayList<Bukken>();
+		Set<Bukken> resultSet = new HashSet<Bukken>();
+
+		if (!searchDto.getCircleDraws().equals("")) {
+			circleResult = getBukkensFromCircleDraws(searchDto.getCircleDraws());
+			resultSet.addAll(circleResult);
+		}
+		if (!searchDto.getPolygonDraws().equals("")) {
+			polygonResult = getBukkensFromPolygonDraws(searchDto.getPolygonDraws(), searchDto.getPoints());
+			resultSet.addAll(polygonResult);
+		}
+		if (!searchDto.getCircleDraws().equals("") || !searchDto.getPolygonDraws().equals("")) {
+			bukkens = bukkens.stream().distinct().filter(new ArrayList<Bukken>(resultSet)::contains)
+					.collect(Collectors.toList());
+		}
+		if (!searchDto.getName().equals("")) {
+			bukkensLikeName = getBukkenLikeName(searchDto.getName());
+			bukkens = bukkens.stream().distinct().filter(bukkensLikeName::contains).collect(Collectors.toList());
+		}
+		if (searchDto.isOpening()) {
+			bukkensOpening = getBukkenOpening();
+			bukkens = bukkens.stream().distinct().filter(bukkensOpening::contains).collect(Collectors.toList());
+		}
+		if (searchDto.isNotopening()) {
+			bukkensNotOpening = getBukkenNotOpening();
+			bukkens = bukkens.stream().distinct().filter(bukkensNotOpening::contains).collect(Collectors.toList());
+		}
+		if (searchDto.isComplete()) {
+			bukkensComplete = getBukkenComplete();
+			bukkens = bukkens.stream().distinct().filter(bukkensComplete::contains).collect(Collectors.toList());
+		}
+		if (searchDto.isNotcomplete()) {
+			bukkensNotComplete = getBukkenNotComplete();
+			bukkens = bukkens.stream().distinct().filter(bukkensNotComplete::contains).collect(Collectors.toList());
+		}
+		if (searchDto.isConfigured()) {
+			bukkensConfigured = getBukkenConfigured();
+			bukkens = bukkens.stream().distinct().filter(bukkensConfigured::contains).collect(Collectors.toList());
+		}
+		if (searchDto.isVr()) {
+			bukkensVR = getBukkenVR();
+			bukkens = bukkens.stream().distinct().filter(bukkensVR::contains).collect(Collectors.toList());
+		}
+		if (searchDto.getMinFloor() > 0) {
+			bukkensByMinFloor = getBukkenByMinFloor(searchDto.getMinFloor());
+			bukkens = bukkens.stream().distinct().filter(bukkensByMinFloor::contains).collect(Collectors.toList());
+		}
+		if (searchDto.getMaxFloor() > 0) {
+			bukkensByMaxFloor = getBukkenByMaxFloor(searchDto.getMaxFloor());
+			bukkens = bukkens.stream().distinct().filter(bukkensByMaxFloor::contains).collect(Collectors.toList());
+		}
+		if (searchDto.getMinFee() > 0) {
+			bukkensByMinFee = getBukkenByMinFee(searchDto.getMinFee());
+			bukkens = bukkens.stream().distinct().filter(bukkensByMinFee::contains).collect(Collectors.toList());
+		}
+		if (searchDto.getMaxFee() > 0) {
+			bukkensByMaxFee = getBukkenByMaxFee(searchDto.getMaxFee());
+			bukkens = bukkens.stream().distinct().filter(bukkensByMaxFee::contains).collect(Collectors.toList());
+		}
+		if (searchDto.getMinArea() > 0) {
+			bukkensByMinArea = getBukkenByMinArea(searchDto.getMinArea());
+			bukkens = bukkens.stream().distinct().filter(bukkensByMinArea::contains).collect(Collectors.toList());
+		}
+		if (searchDto.getMaxArea() > 0) {
+			bukkensByMaxArea = getBukkenByMaxArea(searchDto.getMaxArea());
+			bukkens = bukkens.stream().distinct().filter(bukkensByMaxArea::contains).collect(Collectors.toList());
+		}
+		if (!"".equals(searchDto.getDeliveryDate())) {
+			try {
+				Date thisDate = new SimpleDateFormat("yyyy-MM-dd").parse(searchDto.getDeliveryDate());
+				bukkensByDeliveryDate = getBukkenByDeliveryDate(thisDate);
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			bukkens = bukkens.stream().distinct().filter(bukkensByDeliveryDate::contains).collect(Collectors.toList());
+		}
+		for (Bukken bukken : bukkens) {
+			increaseCountSearch(bukken.getId());
+		}
+		return bukkenRepo.saveAll(bukkens);
+	}
+
+	// get bukkens by search address
+	public List<Bukken> getBukkensBySearchAddress(@PathVariable java.math.BigDecimal lat,
+			@PathVariable java.math.BigDecimal lng, @PathVariable java.math.BigDecimal radius, SearchDto searchDto) {
+		List<Bukken> bukkens = getAll();
+		List<Bukken> bukkensAddress = filterByAddress(lat, lng, radius);
+		List<Bukken> bukkensLikeName = new ArrayList<Bukken>();
+		List<Bukken> bukkensOpening = new ArrayList<Bukken>();
+		List<Bukken> bukkensComplete = new ArrayList<Bukken>();
+		List<Bukken> bukkensNotOpening = new ArrayList<Bukken>();
+		List<Bukken> bukkensNotComplete = new ArrayList<Bukken>();
+		List<Bukken> bukkensConfigured = new ArrayList<Bukken>();
+		List<Bukken> bukkensVR = new ArrayList<Bukken>();
+		List<Bukken> bukkensByMinFloor = new ArrayList<Bukken>();
+		List<Bukken> bukkensByMaxFloor = new ArrayList<Bukken>();
+		List<Bukken> bukkensByMinFee = new ArrayList<Bukken>();
+		List<Bukken> bukkensByMaxFee = new ArrayList<Bukken>();
+		List<Bukken> bukkensByMinArea = new ArrayList<Bukken>();
+		List<Bukken> bukkensByMaxArea = new ArrayList<Bukken>();
+		List<Bukken> bukkensByDeliveryDate = new ArrayList<Bukken>();
+		bukkens = bukkens.stream().distinct().filter(new ArrayList<Bukken>(bukkensAddress)::contains)
+				.collect(Collectors.toList());
+		if (!searchDto.getName().equals("")) {
+			bukkensLikeName = getBukkenLikeName(searchDto.getName());
+			bukkens = bukkens.stream().distinct().filter(bukkensLikeName::contains).collect(Collectors.toList());
+		}
+		if (searchDto.isOpening()) {
+			bukkensOpening = getBukkenOpening();
+			bukkens = bukkens.stream().distinct().filter(bukkensOpening::contains).collect(Collectors.toList());
+		}
+		if (searchDto.isNotopening()) {
+			bukkensNotOpening = getBukkenNotOpening();
+			bukkens = bukkens.stream().distinct().filter(bukkensNotOpening::contains).collect(Collectors.toList());
+		}
+		if (searchDto.isComplete()) {
+			bukkensComplete = getBukkenComplete();
+			bukkens = bukkens.stream().distinct().filter(bukkensComplete::contains).collect(Collectors.toList());
+		}
+		if (searchDto.isNotcomplete()) {
+			bukkensNotComplete = getBukkenNotComplete();
+			bukkens = bukkens.stream().distinct().filter(bukkensNotComplete::contains).collect(Collectors.toList());
+		}
+		if (searchDto.isConfigured()) {
+			bukkensConfigured = getBukkenConfigured();
+			bukkens = bukkens.stream().distinct().filter(bukkensConfigured::contains).collect(Collectors.toList());
+		}
+		if (searchDto.isVr()) {
+			bukkensVR = getBukkenVR();
+			bukkens = bukkens.stream().distinct().filter(bukkensVR::contains).collect(Collectors.toList());
+		}
+		if (searchDto.getMinFloor() > 0) {
+			bukkensByMinFloor = getBukkenByMinFloor(searchDto.getMinFloor());
+			bukkens = bukkens.stream().distinct().filter(bukkensByMinFloor::contains).collect(Collectors.toList());
+		}
+		if (searchDto.getMaxFloor() > 0) {
+			bukkensByMaxFloor = getBukkenByMaxFloor(searchDto.getMaxFloor());
+			bukkens = bukkens.stream().distinct().filter(bukkensByMaxFloor::contains).collect(Collectors.toList());
+		}
+		if (searchDto.getMinFee() > 0) {
+			bukkensByMinFee = getBukkenByMinFee(searchDto.getMinFee());
+			bukkens = bukkens.stream().distinct().filter(bukkensByMinFee::contains).collect(Collectors.toList());
+		}
+		if (searchDto.getMaxFee() > 0) {
+			bukkensByMaxFee = getBukkenByMaxFee(searchDto.getMaxFee());
+			bukkens = bukkens.stream().distinct().filter(bukkensByMaxFee::contains).collect(Collectors.toList());
+		}
+		if (searchDto.getMinArea() > 0) {
+			bukkensByMinArea = getBukkenByMinArea(searchDto.getMinArea());
+			bukkens = bukkens.stream().distinct().filter(bukkensByMinArea::contains).collect(Collectors.toList());
+		}
+		if (searchDto.getMaxArea() > 0) {
+			bukkensByMaxArea = getBukkenByMaxArea(searchDto.getMaxArea());
+			bukkens = bukkens.stream().distinct().filter(bukkensByMaxArea::contains).collect(Collectors.toList());
+		}
+		if (!"".equals(searchDto.getDeliveryDate())) {
+			try {
+				Date thisDate = new SimpleDateFormat("yyyy-MM-dd").parse(searchDto.getDeliveryDate());
+				bukkensByDeliveryDate = getBukkenByDeliveryDate(thisDate);
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			bukkens = bukkens.stream().distinct().filter(bukkensByDeliveryDate::contains).collect(Collectors.toList());
+		}
+		for (Bukken bukken : bukkens) {
+			increaseCountSearch(bukken.getId());
+		}
+		return bukkenRepo.saveAll(bukkens);
 	}
 
 	public boolean checkPointInsidePolygon(Point point, List<Point> peakList) {
@@ -317,7 +720,7 @@ public class BukkenService {
 			try {
 				count = 10;
 				String lrad = "&lrad=10.0"; // req.location != "2" ? "&lrad=10.0" :
-																					// "";
+											// "";
 				String chips = dayPosted != ""
 						? ("&chips=date_posted:" + dayPosted + "&schips=date_posted;" + dayPosted)
 						: "";
@@ -349,10 +752,9 @@ public class BukkenService {
 			}
 		}
 		if ("10.0".equals(location)) {
-			if (S10!=0) {
+			if (S10 != 0) {
 				station.setS10((double) Math.ceil(S10 / dataSize * 1000) / 1000);
-			}
-			else {
+			} else {
 				station.setS10(0);
 			}
 		}
@@ -539,18 +941,232 @@ public class BukkenService {
 
 	// ***************************************** END CRAWLING
 	// *****************************************
-	public Page<Bukken> getMyBukkens(int accountId,int page){
-		return bukkenRepo.findByAccountId(PageRequest.of(page, 12),accountId);
+	public Page<Bukken> getMyBukkens(int accountId, int page) {
+		Pageable pageable = PageRequest.of(page, 12, Sort.by("name"));
+		return bukkenRepo.findByAccountId(pageable, accountId);
 	}
-	public int countMyBukkens(int accountId){
+
+	public int countMyBukkens(int accountId) {
 		return bukkenRepo.findByAccountId(accountId).size();
 	}
-	public String getMailOwner(int bukkenId) {
-		Bukken thisBukken=getById(bukkenId);
-		Set<Account> accounts=thisBukken.getAccounts();
-		List<Account> accountsFilter=  accounts.stream()                // convert list to stream
-        .filter(element -> element.getRole().getId()==2)     // we dont like mkyong
-        .collect(Collectors.toList());
-		return accountsFilter.get(0).getEmail();
+
+	public Page<Bukken> getMyBukkens_LikeName(int accountId, int page, String bukkenName) {
+		return bukkenRepo.findByAccountId_BukkenName(PageRequest.of(page, 12), accountId, bukkenName);
 	}
+
+	public int countMyBukkens_LikeName(int accountId, String bukkenName) {
+		return bukkenRepo.findByAccountId_BukkenName(accountId, bukkenName).size();
+	}
+
+	public String getMailOwner(int bukkenId) {
+		Bukken thisBukken = getById(bukkenId);
+		Account account = thisBukken.getAccount();
+		return account.getEmail();
+	}
+
+	// get bukken like bukkenName by page
+	public Page<Bukken> getBukkenLikeNameByPage(int pageIndex, String bukkenName) {
+		Pageable pageable = PageRequest.of(pageIndex, 12, Sort.by("name"));
+		return bukkenRepo.findByLikeBukkenNameByPage(pageable, bukkenName);
+	}
+
+	// get bukken like bukkenName
+	public List<Bukken> getBukkenLikeName(String bukkenName) {
+		return bukkenRepo.findByLikeBukkenName(bukkenName);
+	}
+
+	// get bukken opening
+	public List<Bukken> getBukkenOpening() {
+		return bukkenRepo.findByOpening();
+	}
+
+	// get bukken complete
+	public List<Bukken> getBukkenComplete() {
+		return bukkenRepo.findByComplete();
+	}
+
+	// get bukken not opening
+	public List<Bukken> getBukkenNotOpening() {
+		return bukkenRepo.findByNotOpening();
+	}
+
+	// get bukken not complete
+	public List<Bukken> getBukkenNotComplete() {
+		return bukkenRepo.findByNotComplete();
+	}
+
+	// get bukken configured
+	public List<Bukken> getBukkenConfigured() {
+		return bukkenRepo.findByConfigured();
+	}
+
+	// get bukken vr
+	public List<Bukken> getBukkenVR() {
+		return bukkenRepo.findByVR();
+	}
+
+	// get bukken by min floor
+	public List<Bukken> getBukkenByMinFloor(int minFloor) {
+		return bukkenRepo.findByMinFloor(minFloor);
+	}
+
+	// get bukken by max floor
+	public List<Bukken> getBukkenByMaxFloor(int maxFloor) {
+		return bukkenRepo.findByMaxFloor(maxFloor);
+	}
+
+	// get bukken by min fee
+	public List<Bukken> getBukkenByMinFee(int minFee) {
+		return bukkenRepo.findByMinFee(minFee);
+	}
+
+	// get bukken by max fee
+	public List<Bukken> getBukkenByMaxFee(int maxFee) {
+		return bukkenRepo.findByMaxFee(maxFee);
+	}
+
+	// get bukken by min area
+	public List<Bukken> getBukkenByMinArea(int minArea) {
+		return bukkenRepo.findByMinArea(minArea);
+	}
+
+	// get bukken by max area
+	public List<Bukken> getBukkenByMaxArea(int maxArea) {
+		return bukkenRepo.findByMaxArea(maxArea);
+	}
+
+	// get bukken by delivery date
+	public List<Bukken> getBukkenByDeliveryDate(Date deliveryDate) {
+		List<Bukken> result = bukkenRepo.findByDeliveryDate(deliveryDate);
+		return result;
+	}
+
+	// count bukken like bukkenName by page
+	public int countBukkenLikeName(String bukkenName) {
+		return bukkenRepo.countByLikeBukkenName(bukkenName);
+	}
+
+	// add interested Bukken for my account
+	public void addInterestedBukken(int bukkenId) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Optional<Account> thisAccount = accRepo.findByEmail(authentication.getName());
+		if (thisAccount.isPresent() == false) {
+			throw new NullException();
+		}
+		Account account = thisAccount.get();
+		Bukken thisBukken = getById(bukkenId);
+		thisBukken.setCountLike(thisBukken.getCountLike() + 1);
+		bukkenRepo.save(thisBukken);
+		Optional<InterestedBukken> thisInterestedBukken = interestedBukkenRepo
+				.findByAccountIdBukkenId(thisBukken.getId(), account.getId());
+		if (thisInterestedBukken.isEmpty()) {
+			InterestedBukken interestedBukken = new InterestedBukken();
+			interestedBukken.setBukken(thisBukken);
+			interestedBukken.setAccount(account);
+			interestedBukkenRepo.save(interestedBukken);
+		} else {
+			throw new InterestedExistException();
+		}
+	}
+
+	// increase countLike bukken by bukkenId
+	public void increaseCountLike(int bukkenId) {
+		Optional<Bukken> result = bukkenRepo.findById(bukkenId);
+		if (result.isPresent()) {
+			Bukken bukkenResult = result.get();
+			int countTemp = bukkenResult.getCountLike();
+			bukkenResult.setCountLike(countTemp + 1);
+			bukkenRepo.save(bukkenResult);
+		}
+	}
+
+	// increase countSearch bukken by bukkenId
+	public void increaseCountSearch(int bukkenId) {
+		Optional<Bukken> result = bukkenRepo.findById(bukkenId);
+		if (result.isPresent()) {
+			Bukken bukkenResult = result.get();
+			int countTemp = bukkenResult.getCountSearch();
+			bukkenResult.setCountSearch(countTemp + 1);
+		}
+	}
+
+	// change map user bukken in matrix
+	public void changeMapUserBukken(int bukkenId) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Optional<Account> thisAccount = accRepo.findByEmail(authentication.getName());
+		if (thisAccount.isPresent() == false) {
+			throw new NullException();
+		}
+		Account account = thisAccount.get();
+		Map<Integer, Integer> matrix = account.getMatrix();
+		if (matrix.containsKey(bukkenId)) {
+			matrix.put(bukkenId, matrix.get(bukkenId) + 1);
+			accRepo.save(account);
+		}
+	}
+
+	// get list Bukken bookmark by page
+	public Page<Bukken> getListBukkenBookmark(int pageIndex, int accountId) {
+		Pageable pageable = PageRequest.of(pageIndex, 12);
+		Page<InterestedBukken> interestedBukkenList = interestedBukkenRepo.findByAccountIdNew(pageable, accountId);
+		Page<Bukken> result = interestedBukkenList.map(new Function<InterestedBukken, Bukken>() {
+			@Override
+			public Bukken apply(InterestedBukken entity) {
+				return entity.getBukken();
+			}
+		});
+		return result;
+	}
+
+	// count list Bukken bookmark
+	public int countListBukkenBookmark(int accountId) {
+		List<InterestedBukken> interestedBukkenList = interestedBukkenRepo.findByAccountId(accountId);
+		if (interestedBukkenList.size() > 0) {
+			return interestedBukkenList.size();
+		} else {
+			throw new NullException();
+		}
+	}
+
+	// get bukkens in 10km
+	public List<Bukken> getNearestBukken10km(int bukkenId) {
+		Bukken centerBukken = getById(bukkenId);
+		List<Bukken> bukkens = getAll();
+		List<Bukken> result = new ArrayList<Bukken>();
+		result = bukkens.stream()
+				.filter(element -> calDistance(new BigDecimal(centerBukken.getLatitude()),
+						new BigDecimal(centerBukken.getLongitude()), new BigDecimal(element.getLatitude()),
+						new BigDecimal(element.getLongitude())).compareTo(new BigDecimal(10)) <= 0
+						&& calDistance(new BigDecimal(centerBukken.getLatitude()),
+								new BigDecimal(centerBukken.getLongitude()), new BigDecimal(element.getLatitude()),
+								new BigDecimal(element.getLongitude())).compareTo(new BigDecimal(0)) > 0)
+				.collect(Collectors.toList());
+		return result;
+	}
+
+	//////////////////////////////////////
+	// generate random delivery date
+	public void generateRandomDate() {
+		List<Bukken> bukkens = getAll();
+		ZoneId defaultZoneId = ZoneId.systemDefault();
+		for (Bukken bukken : bukkens) {
+			LocalDate randomDate = createRandomDate(2000, 2030);
+			Date date = Date.from(randomDate.atStartOfDay(defaultZoneId).toInstant());
+			bukken.setDeliveryDate(date);
+		}
+		bukkenRepo.saveAll(bukkens);
+	}
+
+	public static LocalDate createRandomDate(int startYear, int endYear) {
+		int day = createRandomIntBetween(1, 28);
+		int month = createRandomIntBetween(1, 12);
+		int year = createRandomIntBetween(startYear, endYear);
+		return LocalDate.of(year, month, day);
+	}
+
+	public static int createRandomIntBetween(int start, int end) {
+		return start + (int) Math.round(Math.random() * (end - start));
+	}
+
+	//////////////////////////////////////
 }

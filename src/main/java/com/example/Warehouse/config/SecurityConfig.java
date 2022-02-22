@@ -97,7 +97,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
                         "/**/*.css",
                         "/**/*.js")
                         .permitAll()
-                .antMatchers("/auth/**","/oauth/callback","/rest-file/**").permitAll()
+                .antMatchers("/auth/**","/oauth/callback","/rest-file/**","/rest-mail/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .oauth2Login()
