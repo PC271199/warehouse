@@ -139,7 +139,7 @@ public class ScheduleService {
 	// get all ScheduleBukkenUser by page
 	public Page<ScheduleBukkenUser> getAllByPage(int pageIndex) {
 		Pageable pageable = PageRequest.of(pageIndex, 10, Sort.by("create_At"));
-		Page<ScheduleBukkenUser> result = scheduleUserRepo.findAll(pageable);
+		Page<ScheduleBukkenUser> result = scheduleUserRepo.findAllAtAdminPage(pageable);
 		if (result != null && result.getSize() > 0) {
 			System.out.println();
 			return result;
@@ -148,9 +148,47 @@ public class ScheduleService {
 		}
 	}
 
-	// count All ScheduleBukkenUser
+	// count All ScheduleBukkenUser belong bukken
+	public long countAllByBukken(int bukkenId) {
+		Bukken thisBukken = bukkenService.getById(bukkenId);
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Optional<Account> thisAccount = accRepo.findByEmail(authentication.getName());
+		if (thisAccount.isPresent() == false) {
+			throw new NullException();
+		}
+		Account account = thisAccount.get();
+		if (thisBukken.getScheduleBukken() != null) {
+			return scheduleUserRepo.findAll().stream()
+					.filter(element -> element.getSchedulebukken().getId() == thisBukken.getScheduleBukken().getId()
+							&& element.getAccount().getId() == account.getId())
+					.count();
+		} else
+			return 0;
+	}
+
+	// count All ScheduleBukkenUser belong account
+	public long countAllByAccount() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Optional<Account> thisAccount = accRepo.findByEmail(authentication.getName());
+		if (thisAccount.isPresent() == false) {
+			throw new NullException();
+		}
+		Account account = thisAccount.get();
+		return scheduleUserRepo.countByAccountId(account.getId());
+	}
+
+	// get bukken by schedule bukken user id
+	public Bukken getBukkenByScheduleBukkenUserId(int scheduleBukkenUserId) {
+		ScheduleBukkenUser thisScheduleBukkenUser = getScheduleBukkenUserById(scheduleBukkenUserId);
+		int bukkenId = scheduleBukkenRepo.getBukkenIdByScheduleBukkenId(thisScheduleBukkenUser.getSchedulebukken().getId());
+//		Bukken result = bukkenService.getById(bukkenId);
+		Bukken result = thisScheduleBukkenUser.getSchedulebukken().getBukken();
+		return result;
+	}
+
+	// count All ScheduleBukkenUser with status id >= 1
 	public long countAll() {
-		return scheduleUserRepo.count();
+		return scheduleUserRepo.findAll().stream().filter(element -> element.getStatusId() >= 1).count();
 	}
 
 	// save ScheduleBukkenUser
@@ -235,14 +273,16 @@ public class ScheduleService {
 
 		mail.setMailFrom(MAIL_ADMIN);
 		mail.setMailTo(mailOwner);
-		mail.setMailContent(thisAccount.getEmail() + " has booked " + scheduleBukkenUserDB.getBukkenName()+" successfully");
-		
+		mail.setMailContent(
+				thisAccount.getEmail() + " has booked " + scheduleBukkenUserDB.getBukkenName() + " successfully");
+
 		Mail mail2 = new Mail();
 
 		mail2.setMailFrom(MAIL_ADMIN);
 		mail2.setMailTo(scheduleBukkenUser.getAccount().getEmail().toString());
 		System.out.println(scheduleBukkenUser.getAccount().getEmail());
-		mail2.setMailContent(thisAccount.getEmail() + " has booked " + scheduleBukkenUserDB.getBukkenName()+" successfully");
+		mail2.setMailContent(
+				thisAccount.getEmail() + " has booked " + scheduleBukkenUserDB.getBukkenName() + " successfully");
 
 		try {
 			MailService mailService = (MailService) mailServiceImpl;
@@ -253,6 +293,22 @@ public class ScheduleService {
 			throw e;
 		}
 		return scheduleUserRepo.save(scheduleBukkenUserDB);
+	}
+
+	// get scheduleBukkenUser by Account per page belong bukken
+	public Page<ScheduleBukkenUser> getScheduleBukkenUser_ByAccount_ByBukken(int bukkenId, int pageIndex) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Optional<Account> thisAccount = accRepo.findByEmail(authentication.getName());
+		if (thisAccount.isPresent() == false) {
+			throw new NullException();
+		}
+		Account account = thisAccount.get();
+		Bukken thisBukken = bukkenService.getById(bukkenId);
+		if (thisBukken.getScheduleBukken() != null) {
+			return scheduleUserRepo.findByAccountIdBukkenId(PageRequest.of(pageIndex, 10), account.getId(),
+					thisBukken.getScheduleBukken().getId());
+		} else
+			return null;
 	}
 
 	// get scheduleBukkenUser by Account per page
@@ -279,8 +335,11 @@ public class ScheduleService {
 		for (Bukken bukken : bukkenList) {
 			ScheduleBukken scheduleBukken = bukken.getScheduleBukken();
 			if (scheduleBukken != null) {
-				Set<ScheduleBukkenUser> scheduleBukkenUserList = scheduleBukken.getScheduleBukkenUserList();
-				scheduleBukkenUserListResult.addAll(scheduleBukkenUserList);
+				if (scheduleBukken.getScheduleBukkenUserList() != null) {
+					List<ScheduleBukkenUser> scheduleBukkenUserList = scheduleBukken.getScheduleBukkenUserList()
+							.stream().filter(element -> element.getStatusId() > 1).collect(Collectors.toList());
+					scheduleBukkenUserListResult.addAll(scheduleBukkenUserList);
+				}
 			}
 		}
 		Page<ScheduleBukkenUser> finalResult = new PageImpl<>(scheduleBukkenUserListResult, pageable,
@@ -288,8 +347,8 @@ public class ScheduleService {
 		return finalResult;
 	}
 
-	// count scheduleBukkenUser belong to ownerId
-	public int countScheduleBukkenUser_BelongOwner(int ownerId) {
+	// count scheduleBukkenUser belong to ownerId with statusId =2
+	public long countScheduleBukkenUser_BelongOwner(int ownerId) {
 		Optional<Account> thisAccount = accRepo.findById(ownerId);
 		if (thisAccount.isPresent() == false) {
 			throw new NullException();
@@ -304,7 +363,7 @@ public class ScheduleService {
 				scheduleBukkenUserListResult.addAll(scheduleBukkenUserList);
 			}
 		}
-		return scheduleBukkenUserListResult.size();
+		return scheduleBukkenUserListResult.stream().filter(element -> element.getStatusId() > 1).count();
 	}
 
 	// delete all scheduleBukkenUser

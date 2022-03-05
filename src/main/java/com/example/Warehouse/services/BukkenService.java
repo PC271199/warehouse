@@ -122,6 +122,17 @@ public class BukkenService {
 		}
 	}
 
+	// get top 10 bukken have the mose countSign
+	public List<Bukken> getTopSign() {
+		List<Bukken> result = bukkenRepo.findAll();
+		result.sort(Comparator.comparingInt(Bukken::getCountSign).reversed());
+		if (result.size() > 0) {
+			return result.stream().limit(10).collect(Collectors.toList());
+		} else {
+			return result;
+		}
+	}
+
 	// get top 10 bukken have the mose countVisited by owner
 	public List<Bukken> getTopVisited_ByOwner() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -158,7 +169,7 @@ public class BukkenService {
 		}
 	}
 
-	// get top 10 bukken have the mose countSearch by owner
+	// get top 10 bukken have the most countSearch by owner
 	public List<Bukken> getTopSearch_ByOwner() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		Optional<Account> thisAccount = accRepo.findByEmail(authentication.getName());
@@ -169,6 +180,24 @@ public class BukkenService {
 		Set<Bukken> setBukkens = account.getBukkens();
 		List<Bukken> result = new ArrayList<>(setBukkens);
 		result.sort(Comparator.comparingInt(Bukken::getCountSearch).reversed());
+		if (result.size() > 0) {
+			return result.stream().limit(10).collect(Collectors.toList());
+		} else {
+			return result;
+		}
+	}
+
+	// get top 10 bukken have the most countSign by owner
+	public List<Bukken> getTopSign_ByOwner() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Optional<Account> thisAccount = accRepo.findByEmail(authentication.getName());
+		if (thisAccount.isPresent() == false) {
+			throw new NullException();
+		}
+		Account account = thisAccount.get();
+		Set<Bukken> setBukkens = account.getBukkens();
+		List<Bukken> result = new ArrayList<>(setBukkens);
+		result.sort(Comparator.comparingInt(Bukken::getCountSign).reversed());
 		if (result.size() > 0) {
 			return result.stream().limit(10).collect(Collectors.toList());
 		} else {
@@ -296,6 +325,17 @@ public class BukkenService {
 			Bukken bukkenResult = result.get();
 			int countTemp = bukkenResult.getCountVisited();
 			bukkenResult.setCountVisited(countTemp + 1);
+			bukkenRepo.save(bukkenResult);
+		}
+	}
+
+	// increase countSign bukken by bukkenId
+	public void increaseCountSign(int bukkenId) {
+		Optional<Bukken> result = bukkenRepo.findById(bukkenId);
+		if (result.isPresent()) {
+			Bukken bukkenResult = result.get();
+			int countTemp = bukkenResult.getCountSign();
+			bukkenResult.setCountSign(countTemp + 1);
 			bukkenRepo.save(bukkenResult);
 		}
 	}
@@ -1059,7 +1099,7 @@ public class BukkenService {
 		bukkenRepo.save(thisBukken);
 		Optional<InterestedBukken> thisInterestedBukken = interestedBukkenRepo
 				.findByAccountIdBukkenId(thisBukken.getId(), account.getId());
-		if (thisInterestedBukken.isEmpty()) {
+		if (!thisInterestedBukken.isPresent()) {
 			InterestedBukken interestedBukken = new InterestedBukken();
 			interestedBukken.setBukken(thisBukken);
 			interestedBukken.setAccount(account);

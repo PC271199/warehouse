@@ -76,7 +76,7 @@ public class TourService {
 	TourRepository tourRepo;
 	@Autowired
 	private BukkenRepository bukkenRepo;
-	
+
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	// create tour
@@ -124,6 +124,17 @@ public class TourService {
 	// delete all tours
 	public void deleteAllTour() {
 		tourRepo.deleteAll();
+	}
+
+	// get by Id
+	public Tour getById(int tourId) {
+		Optional<Tour> tourOption = tourRepo.findById(tourId);
+		if (tourOption.isPresent()) {
+			return tourOption.get();
+		}
+		else {
+			throw new NullException();
+		}
 	}
 
 	// delete tour by Id

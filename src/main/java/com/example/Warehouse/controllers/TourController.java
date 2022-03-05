@@ -34,12 +34,21 @@ public class TourController {
 	}
 
 	// get tour by bukkenId
-	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_OWNER')")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_OWNER','ROLE_USER')")
 	@RequestMapping(value = "/tours/{bukkenId}", method = RequestMethod.GET)
 	public ResponseEntity<ResponseDto<List<Tour>>> getToursByBukkenId(@PathVariable int bukkenId) {
 		List<Tour> tours = tourService.getToursByBukkenId(bukkenId);
 		ResponseDto<List<Tour>> result = new ResponseDto<List<Tour>>(tours, HttpStatus.OK.value());
 		return new ResponseEntity<ResponseDto<List<Tour>>>(result, HttpStatus.OK);
+	}
+
+	// get tour by tourId
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_OWNER','ROLE_USER')")
+	@RequestMapping(value = "/tours/tour/{tourId}", method = RequestMethod.GET)
+	public ResponseEntity<ResponseDto<Tour>> getTourById(@PathVariable int tourId) {
+		Tour tour = tourService.getById(tourId);
+		ResponseDto<Tour> result = new ResponseDto<Tour>(tour, HttpStatus.OK.value());
+		return new ResponseEntity<ResponseDto<Tour>>(result, HttpStatus.OK);
 	}
 
 	// delete tour by Id

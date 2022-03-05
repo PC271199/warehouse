@@ -4,9 +4,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,6 +19,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,12 +30,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.Warehouse.dtos.ResponseDto;
 import com.example.Warehouse.dtos.SearchDto;
+import com.example.Warehouse.entities.accountService.Account;
+import com.example.Warehouse.entities.accountService.Renter;
 import com.example.Warehouse.entities.bukkenService.Bukken;
 import com.example.Warehouse.entities.bukkenService.Station;
 import com.example.Warehouse.exceptions.accountService.ImportFailException;
+import com.example.Warehouse.exceptions.common.NullException;
 import com.example.Warehouse.repositories.systemService.FileRepository;
 import com.example.Warehouse.services.AccountService;
 import com.example.Warehouse.services.BukkenService;
+import com.example.Warehouse.services.RenterService;
 import com.example.Warehouse.util.BukkenExcelExporter;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,6 +54,8 @@ public class BukkenController {
 	private FileRepository fileRepo;
 	@Autowired
 	private AccountService accser;
+	@Autowired
+	private RenterService renterser;
 
 	// get all bukkens
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_OWNER','ROLE_USER')")
@@ -82,6 +93,15 @@ public class BukkenController {
 		return new ResponseEntity<ResponseDto<List<Bukken>>>(result, HttpStatus.OK);
 	}
 
+	// get top 10 bukken have the most sign
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_OWNER')")
+	@RequestMapping(value = "/bukkens/countSign", method = RequestMethod.GET)
+	public ResponseEntity<ResponseDto<List<Bukken>>> getTopSign() {
+		List<Bukken> bukkens = bukkenservice.getTopSign();
+		ResponseDto<List<Bukken>> result = new ResponseDto<List<Bukken>>(bukkens, HttpStatus.OK.value());
+		return new ResponseEntity<ResponseDto<List<Bukken>>>(result, HttpStatus.OK);
+	}
+
 	// get top 10 bukken have the most countvisited by owner
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_OWNER')")
 	@RequestMapping(value = "/bukkens/countVisited/owner", method = RequestMethod.GET)
@@ -105,6 +125,15 @@ public class BukkenController {
 	@RequestMapping(value = "/bukkens/countSearch/owner", method = RequestMethod.GET)
 	public ResponseEntity<ResponseDto<List<Bukken>>> getTopSearch_ByOwner() {
 		List<Bukken> bukkens = bukkenservice.getTopSearch_ByOwner();
+		ResponseDto<List<Bukken>> result = new ResponseDto<List<Bukken>>(bukkens, HttpStatus.OK.value());
+		return new ResponseEntity<ResponseDto<List<Bukken>>>(result, HttpStatus.OK);
+	}
+
+	// get top 10 bukken have the most sign by owner
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_OWNER')")
+	@RequestMapping(value = "/bukkens/countSign/owner", method = RequestMethod.GET)
+	public ResponseEntity<ResponseDto<List<Bukken>>> getTopSign_ByOwner() {
+		List<Bukken> bukkens = bukkenservice.getTopSign_ByOwner();
 		ResponseDto<List<Bukken>> result = new ResponseDto<List<Bukken>>(bukkens, HttpStatus.OK.value());
 		return new ResponseEntity<ResponseDto<List<Bukken>>>(result, HttpStatus.OK);
 	}
@@ -383,8 +412,22 @@ public class BukkenController {
 		String headerKey = "Content-Disposition";
 		String headerValue = "attachment; filename=users_" + currentDateTime + ".xlsx";
 		response.setHeader(headerKey, headerValue);
-
-		List<Bukken> bukkenList = bukkenservice.getAll();
+		List<Bukken> bukkenList = new ArrayList<Bukken>();
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if ("ROLE_OWNER".equals(authentication.getAuthorities().toArray()[0].toString())) {
+			Account ownerAccount = accser.getByUserName(authentication.getName());
+			if (ownerAccount.getBukkens() != null) {
+				bukkenList = ownerAccount.getBukkens().stream().collect(Collectors.toList());
+			}
+		} else if ("ROLE_USER".equals(authentication.getAuthorities().toArray()[0].toString())) {
+			Account userAccount = accser.getByUserName(authentication.getName());
+			if (userAccount.getInterestedBukkens() != null) {
+				bukkenList = userAccount.getInterestedBukkens().stream().map(element -> element.getBukken())
+						.collect(Collectors.toList());
+			}
+		} else {
+			bukkenList = bukkenservice.getAll();
+		}
 		bukkenList.sort(Comparator.comparing(Bukken::getId));
 
 		BukkenExcelExporter excelExporter = new BukkenExcelExporter(bukkenList);
@@ -397,7 +440,7 @@ public class BukkenController {
 	}
 
 	// get bukken recommendation
-	@PreAuthorize("hasRole('USER')")
+	@PreAuthorize("hasRole('ROLE_USER')")
 	@RequestMapping(value = "/recommendation", method = RequestMethod.GET)
 	public ResponseEntity<ResponseDto<List<Bukken>>> getRecommendation() {
 		List<Integer> userIds = accser.getUsersSimilarity();
@@ -405,6 +448,15 @@ public class BukkenController {
 		List<Bukken> bukkensRecommendation = accser.getBukkensRecommendation(bukkensSimilarity);
 		ResponseDto<List<Bukken>> result = new ResponseDto<List<Bukken>>(bukkensRecommendation, HttpStatus.OK.value());
 		return new ResponseEntity<ResponseDto<List<Bukken>>>(result, HttpStatus.OK);
+	}
+
+	// get renter of bukken
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_OWNER')")
+	@RequestMapping(value = "/renter/{bukkenId}", method = RequestMethod.GET)
+	public ResponseEntity<ResponseDto<List<Renter>>> getRenterByBukken(@PathVariable int bukkenId) {
+		List<Renter> renters = renterser.getRenterByBukken(bukkenId);
+		ResponseDto<List<Renter>> result = new ResponseDto<List<Renter>>(renters, HttpStatus.OK.value());
+		return new ResponseEntity<ResponseDto<List<Renter>>>(result, HttpStatus.OK);
 	}
 
 	// just for test

@@ -1,6 +1,9 @@
 JWT_SECRET: 926D96C90030DD58429D2751AC1BDBBC
 spring:
     application.name: warehouse-service
+    jackson:
+        serialization:
+            FAIL_ON_EMPTY_BEANS: false
     datasource:
         password: cong123
         platform: postgres

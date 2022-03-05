@@ -46,7 +46,7 @@ public class Bukken {
 
 	private double longitude;
 
-	private double rentFee;
+	private double rentFee;	
 
 	private double area;
 
@@ -64,6 +64,9 @@ public class Bukken {
 	
 	@Column(nullable = true, columnDefinition = "int default 0")
 	private int countSearch = 0;
+	
+	@Column(nullable = true, columnDefinition = "int default 0")
+	private int countSign = 0;
 
 	@Enumerated(EnumType.STRING)
 	private BukkenStatus status;
@@ -310,6 +313,14 @@ public class Bukken {
 
 	public void setVr(boolean vr) {
 		this.vr = vr;
+	}
+
+	public int getCountSign() {
+		return countSign;
+	}
+
+	public void setCountSign(int countSign) {
+		this.countSign = countSign;
 	}
 
 }
