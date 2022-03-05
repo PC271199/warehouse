@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -35,12 +36,18 @@ import com.example.Warehouse.dtos.accountService.AccountDtoAdmin;
 import com.example.Warehouse.dtos.accountService.AccountEditDto;
 import com.example.Warehouse.dtos.accountService.AccountEditDtoAdmin;
 import com.example.Warehouse.entities.accountService.Account;
+import com.example.Warehouse.entities.accountService.Renter;
+import com.example.Warehouse.entities.bukkenService.Bukken;
 import com.example.Warehouse.exceptions.accountService.ImportFailException;
 import com.example.Warehouse.exceptions.accountService.NoAccessRightException;
+import com.example.Warehouse.exceptions.common.NullException;
 import com.example.Warehouse.mapper.AccountAdminMapper;
 import com.example.Warehouse.mapper.AccountEditDtoAdminMapper;
 import com.example.Warehouse.mapper.AccountMapper;
+import com.example.Warehouse.repositories.accountService.RenterRepository;
 import com.example.Warehouse.services.AccountService;
+import com.example.Warehouse.services.BukkenService;
+import com.example.Warehouse.services.RenterService;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -57,11 +64,15 @@ public class AccountController {
 	@Autowired
 	private AccountService accser;
 	@Autowired
+	private BukkenService bukkenser;
+	@Autowired
 	private AccountAdminMapper accAdminMap;
 	@Autowired
 	private AccountEditDtoAdminMapper accEditAdminMap;
 	@Autowired
 	private AccountMapper accMap;
+	@Autowired
+	private RenterService renterservice;
 
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@RequestMapping(value = "/accounts", method = RequestMethod.GET)
@@ -173,9 +184,9 @@ public class AccountController {
 				new ResponseDto<AccountDto>(accMap.toAccountDTO(result), HttpStatus.OK.value()), HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/authenDocsign/{code}", method = RequestMethod.POST)
+	@RequestMapping(value = "/authenDocsign/{code}/{bukkenId}", method = RequestMethod.POST)
 	public ResponseEntity<Object> authenAndSendDocsign(HttpServletRequest request, @PathVariable String code,
-			@RequestBody MailContractDto mailContractDto) throws Exception {
+			@PathVariable int bukkenId, @RequestBody MailContractDto mailContractDto) throws Exception {
 		// get accessToken-Docsign
 		try {
 			HttpHeaders headers = new HttpHeaders();
@@ -260,7 +271,32 @@ public class AccountController {
 					"https://demo.docusign.net/restapi/v2.1/accounts/726c5825-36d7-4b6b-a1c0-f97527c2cac4/envelopes",
 					HttpMethod.POST, entity2, String.class);
 			JsonNode root2 = objectMapper.readTree(response2.getBody());
-			return new ResponseEntity<Object>(root, HttpStatus.OK);
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			Account account = accser.getByUserName(authentication.getName());
+			Bukken bukken = bukkenser.getById(bukkenId);
+			if (renterservice.findbyAccountId_BukkenId(account.getId(), bukken.getId()) != null) {
+				return new ResponseEntity<Object>("You have already signed contract with this warehouse",
+						HttpStatus.CONFLICT);
+			} else {
+				Renter thisRenter = new Renter();
+				thisRenter.setAccount(account);
+				thisRenter.setBukken(bukken);
+				bukkenser.increaseCountSign(bukkenId);
+				if (account.getUserinfor() != null) {
+					if (account.getUserinfor().getFullname() != null) {
+						thisRenter.setFullname(account.getUserinfor().getFullname());
+					}
+					if (account.getUserinfor().getCompanyname() != null) {
+						thisRenter.setCompanyname(account.getUserinfor().getCompanyname());
+					}
+					if (account.getUserinfor().getPhonenumber() != null) {
+						thisRenter.setPhonenumber(account.getUserinfor().getPhonenumber());
+					}
+					thisRenter.setMailuser(account.getEmail());
+				}
+				renterservice.save(thisRenter);
+				return new ResponseEntity<Object>(root, HttpStatus.OK);
+			}
 		} catch (Exception e) {
 			throw e;
 		}
@@ -335,6 +371,7 @@ public class AccountController {
 					"https://demo.docusign.net/restapi/v2.1/accounts/726c5825-36d7-4b6b-a1c0-f97527c2cac4/envelopes",
 					HttpMethod.POST, entity, String.class);
 			JsonNode root = objectMapper.readTree(response.getBody());
+
 			return new ResponseEntity<Object>(root, HttpStatus.OK);
 		} catch (Exception e) {
 			throw e;
@@ -349,9 +386,8 @@ public class AccountController {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		RestTemplate restTemplate = new RestTemplate();
 		HttpEntity<String> entity = new HttpEntity<String>("", headers);
-		ResponseEntity<String> response = restTemplate.exchange(
-				"http://localhost:5000/api/v1/hello/{a}",
-				HttpMethod.GET, entity, String.class,1);
+		ResponseEntity<String> response = restTemplate.exchange("http://localhost:5000/api/v1/hello/{a}",
+				HttpMethod.GET, entity, String.class, 1);
 //		JsonNode root = objectMapper.readTree(response.getBody());
 		System.out.println(response);
 		return new ResponseEntity<Object>(new ResponseDto<Object>("ac", HttpStatus.OK.value()), HttpStatus.OK);

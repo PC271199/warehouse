@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.Warehouse.dtos.ResponseDto;
 import com.example.Warehouse.dtos.accountService.AccountDtoAdmin;
 import com.example.Warehouse.dtos.scheduleService.ScheduleBukkenDto;
+import com.example.Warehouse.entities.bukkenService.Bukken;
 import com.example.Warehouse.entities.fileService.File;
 import com.example.Warehouse.entities.scheduleService.ScheduleBukken;
 import com.example.Warehouse.entities.scheduleService.ScheduleBukkenUser;
@@ -112,8 +113,20 @@ public class ScheduleController {
 		return new ResponseEntity<ResponseDto<Page<ScheduleBukkenUser>>>(result, HttpStatus.OK);
 	}
 
-	// get all ScheduleBukkenUser by account per page (admin)
+	// get all ScheduleBukkenUser by account per page belong bukken (user)
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_OWNER','ROLE_USER')")
+	@RequestMapping(value = "/scheduleBukkenUser/account/page/{bukkenId}/{pageIndex}", method = RequestMethod.GET)
+	public ResponseEntity<ResponseDto<Page<ScheduleBukkenUser>>> getScheduleBukkenUser_ByAccount_ByBukken_PerPage(
+			@PathVariable int bukkenId, @PathVariable int pageIndex) {
+		Page<ScheduleBukkenUser> scheduleBukkenUserList = scheduleService
+				.getScheduleBukkenUser_ByAccount_ByBukken(bukkenId, pageIndex);
+		ResponseDto<Page<ScheduleBukkenUser>> result = new ResponseDto<Page<ScheduleBukkenUser>>(scheduleBukkenUserList,
+				HttpStatus.OK.value());
+		return new ResponseEntity<ResponseDto<Page<ScheduleBukkenUser>>>(result, HttpStatus.OK);
+	}
+
+	// get all ScheduleBukkenUser by account per page (user)
+	@PreAuthorize("hasRole('ROLE_USER')")
 	@RequestMapping(value = "/scheduleBukkenUser/account/page/{pageIndex}", method = RequestMethod.GET)
 	public ResponseEntity<ResponseDto<Page<ScheduleBukkenUser>>> getScheduleBukkenUser_ByAccount_PerPage(
 			@PathVariable int pageIndex) {
@@ -135,22 +148,49 @@ public class ScheduleController {
 		return new ResponseEntity<ResponseDto<Page<ScheduleBukkenUser>>>(result, HttpStatus.OK);
 	}
 
-	// count scheduleBukkenUser belong to owner
+	// count scheduleBukkenUser belong to owner with statusId =2
 	@PreAuthorize("hasRole('ROLE_OWNER')")
 	@RequestMapping(value = "/scheduleBukkenUser/count/owner/{ownerId}", method = RequestMethod.GET)
-	public ResponseEntity<ResponseDto<Integer>> countAll_ByOwner(@PathVariable int ownerId) {
-		int count = scheduleService.countScheduleBukkenUser_BelongOwner(ownerId);
-		ResponseDto<Integer> result = new ResponseDto<Integer>(count, HttpStatus.OK.value());
-		return new ResponseEntity<ResponseDto<Integer>>(result, HttpStatus.OK);
+	public ResponseEntity<ResponseDto<Long>> countAll_ByOwner(@PathVariable int ownerId) {
+		long count = scheduleService.countScheduleBukkenUser_BelongOwner(ownerId);
+		ResponseDto<Long> result = new ResponseDto<Long>(count, HttpStatus.OK.value());
+		return new ResponseEntity<ResponseDto<Long>>(result, HttpStatus.OK);
 	}
 
-	// count all scheduleBukkenUser
+	// count all scheduleBukkenUser with status >=1 (admin)
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_OWNER','ROLE_USER')")
 	@RequestMapping(value = "/scheduleBukkenUser/count", method = RequestMethod.GET)
 	public ResponseEntity<ResponseDto<Long>> countAll() {
 		long count = scheduleService.countAll();
 		ResponseDto<Long> result = new ResponseDto<Long>(count, HttpStatus.OK.value());
 		return new ResponseEntity<ResponseDto<Long>>(result, HttpStatus.OK);
+	}
+
+	// count all scheduleBukkenUser belong bukken and belong this account
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_OWNER','ROLE_USER')")
+	@RequestMapping(value = "/scheduleBukkenUser/count/{bukkenId}", method = RequestMethod.GET)
+	public ResponseEntity<ResponseDto<Long>> countAllByBukken(@PathVariable int bukkenId) {
+		long count = scheduleService.countAllByBukken(bukkenId);
+		ResponseDto<Long> result = new ResponseDto<Long>(count, HttpStatus.OK.value());
+		return new ResponseEntity<ResponseDto<Long>>(result, HttpStatus.OK);
+	}
+
+	// count all scheduleBukkenUser belong this account
+	@PreAuthorize("hasRole('ROLE_USER')")
+	@RequestMapping(value = "/scheduleBukkenUser/countAll", method = RequestMethod.GET)
+	public ResponseEntity<ResponseDto<Long>> countAllByAccount() {
+		long count = scheduleService.countAllByAccount();
+		ResponseDto<Long> result = new ResponseDto<Long>(count, HttpStatus.OK.value());
+		return new ResponseEntity<ResponseDto<Long>>(result, HttpStatus.OK);
+	}
+
+	// get bukken by schedule bukken user id
+	@PreAuthorize("hasRole('ROLE_USER')")
+	@RequestMapping(value = "bukken/scheduleBukkenUser/{scheduleBukkenUserId}", method = RequestMethod.GET)
+	public ResponseEntity<ResponseDto<Bukken>> getBukkenByScheduleBukkenUserId(@PathVariable int scheduleBukkenUserId) {
+		Bukken thisBukken = scheduleService.getBukkenByScheduleBukkenUserId(scheduleBukkenUserId);
+		ResponseDto<Bukken> result = new ResponseDto<Bukken>(thisBukken, HttpStatus.OK.value());
+		return new ResponseEntity<ResponseDto<Bukken>>(result, HttpStatus.OK);
 	}
 
 	// save scheduleBukkenUser
