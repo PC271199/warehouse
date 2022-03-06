@@ -249,7 +249,7 @@ public class ScheduleService {
 			MailService mailService = (MailService) mailServiceImpl;
 			mailService.sendEmailPassword(mail);
 		} catch (Exception e) {
-			throw e;
+			
 		}
 		return scheduleUserRepo.save(scheduleBukkenUserDB);
 	}
