@@ -756,7 +756,7 @@ public class BukkenService {
 		Date date = new Date();
 		double S10 = 0;
 		double S2 = 0;
-		while (sumInWhile < 150 && count > 0) {
+		while (sumInWhile < 75 && count > 0) {
 			try {
 				count = 10;
 				String lrad = "&lrad=10.0"; // req.location != "2" ? "&lrad=10.0" :
@@ -777,6 +777,7 @@ public class BukkenService {
 
 				// get value crawl
 				List<Double> crawlResult = mainCrawlData(document, date, location, bukken_id);
+				System.out.println("salary : "+crawlResult.get(1)+","+crawlResult.get(2));
 				S10 += crawlResult.get(1);
 				S2 += crawlResult.get(2);
 				dataSize += crawlResult.get(3);
@@ -799,7 +800,7 @@ public class BukkenService {
 			}
 		}
 		// write csv
-		writeCsv(date, sum, keySearch);
+//		writeCsv(date, sum, keySearch);
 	}
 
 	public List<Double> mainCrawlData(Document document, Date date, String location, int bukken_id) {
