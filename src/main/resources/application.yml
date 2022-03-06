@@ -50,6 +50,3 @@ spring:
 mail:
     smtp:
         debug: true 
-java:
-    runtime:
-        version: 13
