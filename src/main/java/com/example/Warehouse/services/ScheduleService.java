@@ -241,7 +241,7 @@ public class ScheduleService {
 		scheduleBukkenUserDB.setStatusName("Waiting for approve");
 		Mail mail = new Mail();
 
-		mail.setMailFrom(currentMail);
+		mail.setMailFrom("phuoccong99@gmail.com");// comment replace
 		mail.setMailTo(MAIL_ADMIN);
 		mail.setMailContent(currentMail + " has booked " + scheduleBukkenUserDB.getBukkenName());
 

@@ -33,12 +33,9 @@ public class MailServiceImpl implements MailService {
             mimeMessageHelper.setFrom(new InternetAddress(mail.getMailFrom(), "phuoccong99@gmail.com"));
             mimeMessageHelper.setTo(mail.getMailTo());
             mimeMessageHelper.setText("");
-            System.out.println("maillllllllllllllllllllllllllllllllllllllllllll");
             FileSystemResource file = new FileSystemResource(new File(fileToAttach));
             mimeMessageHelper.addAttachment("qrcode.png", file);
-            System.out.println("bkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk");
             mailSender.send(mimeMessageHelper.getMimeMessage());
-            System.out.println("avvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv");
  
         } catch (MessagingException e) {
             e.printStackTrace();
