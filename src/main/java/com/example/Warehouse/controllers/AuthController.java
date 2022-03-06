@@ -45,10 +45,14 @@ import javax.validation.Valid;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 @RestController
@@ -93,11 +97,28 @@ public class AuthController {
 				accser.saveAccount(thisAccount);
 			}
 		}
+//		ZoneId defaultZoneId = ZoneId.systemDefault();
+//		List<Bukken> bukkens = bukkenservice.getAll();
+//		Random rand = new Random();
+//		for (Bukken bukken : bukkens) {
+//			LocalDate randomDate = createRandomDate(2010, 2025);
+//			bukken.setDeliveryDate(Date.from(randomDate.atStartOfDay(defaultZoneId).toInstant()));
+//		}
+//		bukkenservice.save(bukkens);
 		String token = tokenProvider.createToken(authentication);
 		ResponseDto<Object> result = new ResponseDto<Object>(new AuthToken(token), HttpStatus.OK.value());
 		return new ResponseEntity<ResponseDto<Object>>(result, HttpStatus.OK);
 	}
-
+//	public static int createRandomIntBetween(int start, int end) {
+//        return start + (int) Math.round(Math.random() * (end - start));
+//    }
+//
+//    public static LocalDate createRandomDate(int startYear, int endYear) {
+//        int day = createRandomIntBetween(1, 28);
+//        int month = createRandomIntBetween(1, 12);
+//        int year = createRandomIntBetween(startYear, endYear);
+//        return LocalDate.of(year, month, day);
+//    }
 	@PostMapping("/register")
 	public ResponseEntity<ResponseDto<String>> registerUser(@Valid @RequestBody RegisterDto signUpRequest) {
 		if (accountRepository.existsByEmail(signUpRequest.getEmail())) {
